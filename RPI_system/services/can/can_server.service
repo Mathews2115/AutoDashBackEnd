@@ -1,0 +1,20 @@
+[Unit]
+After=network.target
+
+[Service]
+WorkingDirectory=/home/pi/can-server/
+# Run's npm node script (Web Server and the CAN Server)
+ExecStart=/usr/bin/npm run can_server
+Restart=on-failure
+RestartSec=1
+# KillMode=process <--- leave killmode blank if you want node to kill itself when you manually stop the service!!
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=can_server
+User=root
+Group=root
+Environment=NODE_ENV=production
+Environment=CHANNEL=can0
+
+[Install]
+WantedBy=multi-user.target
