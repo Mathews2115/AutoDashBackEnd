@@ -12,6 +12,7 @@
   "author": "Michael J Mathews II",
   "dependencies": {
     "express": "^4.17.1",
+    "socketcan": "^3.0.0",
     "uWebSockets.js": "uNetworking/uWebSockets.js#18.7.0"
   },
   "type": "module",

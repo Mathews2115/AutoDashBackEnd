@@ -13,6 +13,7 @@ class SocketServer {
       console.log('A WebSocket connected!');
     }
     this.message = (ws, message, isBinary) => {
+      console.log('WebSocket message', message);
       /* Ok is false if backpressure was built up, wait for drain */
       let ok = ws.send(message, isBinary);
     }
@@ -37,6 +38,10 @@ class SocketServer {
 
   notifyClient(type, data) {
     this.uWSApp.publish(type, data, true);
+  }
+
+  notifyError() {
+
   }
 
   start() {
