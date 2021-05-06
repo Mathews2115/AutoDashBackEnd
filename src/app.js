@@ -1,6 +1,6 @@
 import FrontEndWebServer from './webserver.js'
-import SocketServer from './socketServer.js'
-import CanServer from './canServer.js'
+import DashSocketComms from './dashSocketComms.js'
+import CanbusManager from './canbusManager.js'
 
 // front end web server config
 const FRONT_END_PATH = '/public/dist'
@@ -11,10 +11,12 @@ const FRONT_END_PORT = 8080;
 const WS_PORT = 3333;
 const WS_URL = ''
 
+
 export default function (canChannel) {
-  //const frontendServer = new FrontEndWebServer(FRONT_END_PATH, ENTRY_POINT);
-  const dashComms = new SocketServer(WS_URL, WS_PORT);
-  const canComms = new CanServer(canChannel);
+  const canComms = new CanbusManager(canChannel);
+  const frontendServer = {} //new FrontEndWebServer(FRONT_END_PATH, ENTRY_POINT);
+  const dashComms = new DashSocketComms(WS_URL, WS_PORT);
+  
   const app =  {
     TYPES: {
       DEVELOPMENT: 'development',
@@ -31,12 +33,14 @@ export default function (canChannel) {
           frontendServer.start();
         }
         dashComms.start();
-        canComms.start();
+        canComms.start((canPacket) => dashComms.canUpdate(canPacket));
       } catch (error) {
+        // if catchable error occurred, attempt to gracefully stop everything first
         if(dashComms && dashComms.started) {
           dashComms.notifyError();
           dashComms.stop();
         }
+        throw error;
       }
     },
 

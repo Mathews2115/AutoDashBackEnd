@@ -2,7 +2,7 @@
 // version 18.7.0 - for node 14 compadiblity
 import uWS from 'uWebSockets.js'
 
-class SocketServer {
+class DashSocketComms {
   constructor (url, port) {
     this.listenSocket = null;
     this.url = url;
@@ -11,9 +11,10 @@ class SocketServer {
 
     this.open = (ws) => {
       console.log('A WebSocket connected!');
+      ws.subscribe('#');
     }
     this.message = (ws, message, isBinary) => {
-      console.log('WebSocket message', message);
+      console.log('WebSocket message received from dash', message);
       /* Ok is false if backpressure was built up, wait for drain */
       let ok = ws.send(message, isBinary);
     }
@@ -30,18 +31,21 @@ class SocketServer {
       // idleTimeout: 10,
       /* Handlers */
       open: this.open,
-      message: this.messge,
+      message: this.message,
       drain: this.drain,
       close: this.close,
     })
   }
 
-  notifyClient(type, data) {
-    this.uWSApp.publish(type, data, true);
+  /**
+   * @param {Buffer} canPacket - array of 32Unit ID | 16UInt length of data | data...
+   */
+  canUpdate(canPacket) {
+    this.uWSApp.publish("can_update", canPacket, true);
   }
 
   notifyError() {
-
+    this.uWSApp.publish("error", "onno");
   }
 
   start() {
@@ -60,9 +64,8 @@ class SocketServer {
     if(this.listenSocket) {
       uWS.us_listen_socket_close(this.listenSocket);
       this.listenSocket = null;
-      this.uWSApp.stop();
     }
   }
 }
 
-export default SocketServer;
+export default DashSocketComms;
