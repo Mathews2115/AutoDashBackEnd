@@ -16,7 +16,7 @@ class DashSocketComms {
     this.message = (ws, message, isBinary) => {
       console.log('WebSocket message received from dash', message);
       /* Ok is false if backpressure was built up, wait for drain */
-      let ok = ws.send(message, isBinary);
+      // let ok = ws.send(message, isBinary);
     }
     this.drain = (ws) => {
       console.log('WebSocket backpressure: ' + ws.getBufferedAmount());
@@ -26,7 +26,7 @@ class DashSocketComms {
     }
 
     this.uWSApp = uWS.App({}).ws('/*', {
-      // compression: uWS.SHARED_COMPRESSOR,
+      compression: uWS.DISABLED,
       // maxPayloadLength: 16 * 1024 * 1024,
       // idleTimeout: 10,
       /* Handlers */
@@ -41,7 +41,10 @@ class DashSocketComms {
    * @param {Buffer} canPacket - array of 32Unit ID | 16UInt length of data | data...
    */
   canUpdate(canPacket) {
-    this.uWSApp.publish("can_update", canPacket, true);
+    
+    this.uWSApp.publish("can_update",
+    new Uint8Array(canPacket.buffer, canPacket.byteOffset, canPacket.length), 
+     true);
   }
 
   notifyError() {

@@ -55,6 +55,7 @@ class CanbusManager {
    */
   start(callback) {
     let framePacketLength = 0;
+    let byteLength = 0;
 
     try {
       this.callback = callback;
@@ -67,16 +68,18 @@ class CanbusManager {
         framePacketLength = 0;
 
         this.keys.forEach((key, _value, _set) => {
-          // allocate space for ID + data's byte_length + actual data
-          const buf = Buffer.allocUnsafe(HEADER_BYTE_LENGTH + Buffer.byteLength(this.db[key]));
+          byteLength = Buffer.byteLength(this.db[key])
 
-          // can ID
+          // allocate space for ID + data's byte_length + actual data
+          const buf = Buffer.allocUnsafe(HEADER_BYTE_LENGTH + byteLength);
+
+          // can ID ( 4 bytes )
           buf.writeUInt32BE(key, 0);
 
-          // can length
-          buf.writeUInt8(Buffer.byteLength(this.db[key]), 2);
+          // can length ( 1 byte )
+          buf.writeUInt8(byteLength, 4);
 
-          // copy can data (target, target_start, source start)
+          // copy can data (target, target_start, source start) ( 8 bytes)
           this.db[key].copy(buf, HEADER_BYTE_LENGTH, 0);
 
           buffers.push(buf);
