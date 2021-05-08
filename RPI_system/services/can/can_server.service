@@ -2,7 +2,7 @@
 After=network.target
 
 [Service]
-WorkingDirectory=/home/pi/can-server/
+WorkingDirectory=/home/pi/AutoDashBackEnd/
 # Run's npm node script (Web Server and the CAN Server)
 ExecStart=/usr/bin/npm run can_server
 Restart=on-failure

@@ -141,7 +141,7 @@ try {
 } catch (error) {
 }
 
-console.log('!! ----------- CAN-SERVER Ready ----------- !!');
+console.log('!! ----------- AutoDash Ready ----------- !!');
 // console.log('Socket Server on 4000');
 
 module.exports = appio;

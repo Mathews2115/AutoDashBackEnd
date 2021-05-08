@@ -370,9 +370,9 @@ type-is@~1.6.17, type-is@~1.6.18:
     media-typer "0.3.0"
     mime-types "~2.1.24"
 
-uWebSockets.js@uNetworking/uWebSockets.js#18.7.0:
-  version "18.7.0"
-  resolved "https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/a1c9776966cfd7e185b20f70426e6b17be6abd5d"
+"uWebSockets.js@github:uNetworking/uWebSockets.js#v18.14.0":
+  version "18.14.0"
+  resolved "https://codeload.github.com/uNetworking/uWebSockets.js/tar.gz/b4bc740f46f1508c0f342b999db4d1f9dc80deab"
 
 unpipe@1.0.0, unpipe@~1.0.0:
   version "1.0.0"

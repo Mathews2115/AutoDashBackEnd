@@ -10,10 +10,22 @@ This is the compnent that gets installed on the raspberry Pi. It will run a Node
 * Based off of older [build](https://gist.github.com/Mathews2115/ed3dbd8623ee815a7bed363dbc7c73a6)
 
 ## Setting Raspberry Pi 4
-* [install Node 14](https://www.officialrajdeepsingh.dev/install-node-js-and-npm-latest-version-on-raspberry-pi-4/)
-* 
-  
-# How to run
+* [install Node](https://medium.com/officialrajdeepsingh/install-node-js-latest-version-on-raspberry-pi-4-14012ec93901)
+* install yarn 
+  ```
+  curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/yarnkey.gpg >/dev/null
+     echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+     sudo apt-get update && sudo apt-get install yarn
+  ```
+* `sudo apt install git`
+* Copy files from you dev computer to the pi
+  * Copy the latest ` scp -r ../AutoDashBackEnd pi@raspberrypi.local:/home/pi`
+* `yarn install`
+* lol `scp -r ../AutoDashBackEnd/uws_linux_arm_88.node pi@raspberrypi.local:/home/pi/AutoDashBackEnd/node_modules/uWebSockets.js/ `
+
+## After you install packages on the pi
+1. Copy the lock file back to our project
+
 ## Development on your Linux/Mac
 
 ### Install needed libraries
@@ -22,8 +34,14 @@ This is the compnent that gets installed on the raspberry Pi. It will run a Node
 
 ### Simulate CAN in dev
 3. Start the virtual CAN interface: `./start_vcan.sh`
-4. Start playing CAN messages from a captured can log: `canplayer vcan0=can0  -I ./can_dumps/candump-2021-05-01_223610.log -li`
+4. Start playing CAN messages from a captured can log: `canplayer vcan0=can0  -I ./can_dumps/candump-racepack-running.log -li`
 5. Run the server: `npm run test_server`
+
+
+## Simulate CAN in dev on the Pi
+1. Start Dev CAN service `~/AutoDashBackEnd$ RPI_system/prepare_dev.sh`
+   1. see that file to configure what canfile to run
+2. reboot, it will automatically run the node test_server command
 
 ## Live on a car connected via CANBUS.
 
@@ -61,3 +79,9 @@ Monitor data is continuously broadcast by the HEFI.
   * payload contains two values.  
   * Each set of 4 bytes (with the exception of RTC) is in a signed “fixed 24.8” format (essentially fixed 24.8 = float *256) 
   * The RTC is sent as an u32 showing milliseconds since power on, or if the RTC was set will it will be the current time of day.
+
+
+
+# Cheatsheets
+* log file of service
+  * `journalctl `

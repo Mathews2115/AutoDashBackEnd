@@ -2,7 +2,7 @@
 After=network.target
 
 [Service]
-WorkingDirectory=/home/pi/can-server/
+WorkingDirectory=/home/pi/AutoDashBackEnd/
 # Run's npm node script (Web Server and the CAN Server)
 ExecStart=/usr/bin/npm run init_and_start_vcan_server
 # KillMode=process <--- leave killmode blank if you want node to kill itself when you manually stop the service!!
@@ -11,7 +11,8 @@ StandardError=syslog
 SyslogIdentifier=init_and_start_vcan_server
 User=root
 Group=root
-Environment=NODE_ENV=production
+Environment=NODE_ENV=development 
+Environment=TYPE=development 
 Environment=CHANNEL=vcan0
 
 [Install]

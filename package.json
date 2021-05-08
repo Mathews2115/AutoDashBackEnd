@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "init_and_start_vcan_server": "./RPI_system/start_vcan.sh && rpm run start_vcan_server",
+    "init_and_start_vcan_server": "./RPI_system/start_vcan.sh && npm run test_server",
     "start_vcan_server": "NODE_ENV=production CHANNEL=vcan0 TYPE=live node index.js",
     "can_server": "NODE_ENV=production TYPE=live CHANNEL=can0 node index.js",
     "test_server": "NODE_ENV=development TYPE=development CHANNEL=vcan0 node index.js"
@@ -13,7 +13,7 @@
   "dependencies": {
     "express": "^4.17.1",
     "socketcan": "^3.0.0",
-    "uWebSockets.js": "uNetworking/uWebSockets.js#18.7.0"
+    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.14.0"
   },
   "type": "module",
   "main": "index.js",
