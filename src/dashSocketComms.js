@@ -11,7 +11,7 @@ class DashSocketComms {
 
     this.open = (ws) => {
       console.log('A WebSocket connected!');
-      ws.subscribe('#');
+      ws.subscribe('#'); //just subscribe to everything for now; ill boost this up at some point
     }
     this.message = (ws, message, isBinary) => {
       console.log('WebSocket message received from dash', message);

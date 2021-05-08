@@ -1,13 +1,15 @@
 # Raspberry Pi (4) Dash Server
+**WARNING - BUILDING THIS WHILE WE ARE FLYING - EXPECT MASSIVE STUPID CHANGES ON A WHIM**
+
 This is the compnent that gets installed on the raspberry Pi. It will run a Node server that will
-1. host the AutoDashFrontEnd's dist files from `public/dist`.
+1. Will host the AutoDashFrontEnd's dist files from `public/dist`. as some point
 2. listen and parse CAN messages from the PiCAN3 hat
 3. Communicate with the dash via a websocket
 
 ## Tech Stack
 * PiCAN 3 drivers
-* node 14 (at the time of this and what was available for rpi4)
-* Based off of older [build](https://gist.github.com/Mathews2115/ed3dbd8623ee815a7bed363dbc7c73a6)
+* node and npm
+* yarn
 
 ## Setting Raspberry Pi 4
 * [install Node](https://medium.com/officialrajdeepsingh/install-node-js-latest-version-on-raspberry-pi-4-14012ec93901)
@@ -21,27 +23,32 @@ This is the compnent that gets installed on the raspberry Pi. It will run a Node
 * Copy files from you dev computer to the pi
   * Copy the latest ` scp -r ../AutoDashBackEnd pi@raspberrypi.local:/home/pi`
 * `yarn install`
-* lol `scp -r ../AutoDashBackEnd/uws_linux_arm_88.node pi@raspberrypi.local:/home/pi/AutoDashBackEnd/node_modules/uWebSockets.js/ `
+* lol- lazy and need to this to use uWebSockets on ARM...
+  *  `scp -r ../AutoDashBackEnd/uws_linux_arm_88.node pi@raspberrypi.local:/home/pi/AutoDashBackEnd/node_modules/uWebSockets.js/ `
 
 ## After you install packages on the pi
-1. Copy the lock file back to our project
+1. Copy the lock file back to our project and commit that shit in
 
 ## Development on your Linux/Mac
 
 ### Install needed libraries
 1. install can utils
-2. `sudo chmod u+rw RPI_system/start_vcan.sh`
+   1. `sudo apt-get -y install can-utils libsocketcan2 libsocketcan-dev`
+2. Dont forget to make your shell scripts executable
+   1. `sudo chmod u+rw RPI_system/start_vcan.sh`
 
-### Simulate CAN in dev
-3. Start the virtual CAN interface: `./start_vcan.sh`
-4. Start playing CAN messages from a captured can log: `canplayer vcan0=can0  -I ./can_dumps/candump-racepack-running.log -li`
-5. Run the server: `npm run test_server`
+### Simulate CAN in dev on your Mac / Linux
+1. Start the virtual CAN interface: `.RPI_system/start_vcan.sh`
+2. Start playing CAN messages from a captured can log: `canplayer vcan0=can0  -I ./can_dumps/candump-racepack-running.log -li`
+3. Run the server: `npm run test_server`
 
 
 ## Simulate CAN in dev on the Pi
 1. Start Dev CAN service `~/AutoDashBackEnd$ RPI_system/prepare_dev.sh`
    1. see that file to configure what canfile to run
 2. reboot, it will automatically run the node test_server command
+3. ssh in and play a canfile
+   1. `canplayer vcan0=can0  -I ./can_dumps/candump-racepack-running.log -li`
 
 ## Live on a car connected via CANBUS.
 
