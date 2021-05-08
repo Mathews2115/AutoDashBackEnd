@@ -1,5 +1,4 @@
 //https://github.com/uNetworking/uWebSockets.js 
-// version 18.7.0 - for node 14 compadiblity
 import uWS from 'uWebSockets.js'
 
 class DashSocketComms {

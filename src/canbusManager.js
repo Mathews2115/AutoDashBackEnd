@@ -6,7 +6,7 @@ import can from 'socketcan'
 // id: 505189072,
 // ext: true,
 // data: <Buffer 80 00 00 00 00 00 00 00>
-const HERTZ = 17;
+const UPDATE_MS = 17; //frequency  sent up to the dash
 const HEADER_BYTE_LENGTH = 5; // bytes
 
 /**
@@ -18,7 +18,7 @@ const defaultCallback = (msg) => {}
 class CanbusManager {
   /**
    * Listens to can messges
-   * @param {string} channel - Example: vcan0 | can0 | can1
+   * @param {string} channel - Example: vcan0 , can0 , can1
    */
   constructor (channel) {
     try {
@@ -37,10 +37,10 @@ class CanbusManager {
   }
 
   /**
-   * store all messages into mini database - to be sent in one big packet per 'frame'
-   * @param {{ ts: number; id: number; data: Uint8Array; ext: boolean; }} msg 
-   */
-   canMessageReceived(msg) {
+  * store all messages into mini database - to be sent in one big packet per 'frame'
+  * @param {{ ts: number; id: number; data: Uint8Array; ext: boolean; }} msg 
+  */
+  canMessageReceived(msg) {
     this.db[msg.id] = msg.data;
 
     // save for our frame packet
@@ -87,13 +87,12 @@ class CanbusManager {
         })
 
         if (framePacketLength) {
-          let packet = Buffer.concat(buffers, framePacketLength);
           // send frame packet to anyone connected with us
-          this.callback(packet);
+          this.callback(Buffer.concat(buffers, framePacketLength));
         }
 
         this.keys.clear();
-      }, HERTZ);
+      }, UPDATE_MS);
       this.started = true;
     } catch (error) {
       console.error("ERROR: SocketServer: ", error);
@@ -106,6 +105,7 @@ class CanbusManager {
     if (this.signal) {
       clearInterval(this.signal);
     }
+    this.signal = null;
     this.callback = defaultCallback;
     this.started = false;
     this.channel.stop();
