@@ -49,7 +49,7 @@ export default function (canChannel, settings) {
           // [GPS PACKET: [0]: data byte length | [1]: data ...byte-length]
           // [CAN PACKET: [0]: data ... buffer length]
 
-          dashComms.dashUpdate(canPacket)
+          dashComms.dashUpdate( Buffer.concat([gpsPacket, canPacket], gpsPacket.length + canPacket.length))
         }, UPDATE_MS);
 
       } catch (error) {

@@ -1,3 +1,4 @@
 gps:
   baudrate: 9600
   odometer: 1
+  port: '/dev/tty/usbserial'
