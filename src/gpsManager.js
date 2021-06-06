@@ -35,14 +35,21 @@ class GPSManager {
 
   start() {
     try {
-      const parser = new Readline({ delimiter: '\r\n' });
       this.port = new SerialPort(this.port, { baudRate: this.baudrate })
-      this.port.pipe(parser)
-      this.port.on('data', (line) => {
-        console.log(nmea.parse(line));
-        //this.speed = Math.ceil(parseFloat(speedString))
-        //this.odometer = Math.ceil(parseFloat(speedString))
-        //this.signalAcquired = 
+      let parser = this.port.pipe(new Readline({ delimiter: '\r\n' }))
+      parser.on('data', (line) => {
+        try {
+          const data = nmea.parse(line)
+          console.log(nmea.parse(line));
+          console.log(line.toString());
+          if (data.sentence == 'VTG' && data.type == 'track-info') {
+            this.speed = Math.ceil(parseFloat( data.speedKmph));
+          }
+          //this.odometer = Math.ceil(parseFloat(...))
+          //this.signalAcquired = ???
+        } catch (e) {
+          console.log(e);
+        }
       });
 
       this.port.on('open', () => {
