@@ -27,7 +27,7 @@ class DashSocketComms {
     this.uWSApp = uWS.App({}).ws('/*', {
       compression: uWS.DISABLED,
       // maxPayloadLength: 16 * 1024 * 1024,
-      idleTimeout: 5,
+      idleTimeout: 10,
       /* Handlers */
       open: this.open,
       message: this.message,
@@ -37,11 +37,11 @@ class DashSocketComms {
   }
 
   /**
-   * @param {Buffer} canPacket - array of 32Unit ID | 16UInt length of data | data...
+   * @param {Buffer} packet - array of 32Unit ID | 16UInt length of data | data...
    */
-  canUpdate(canPacket) {
-    this.uWSApp.publish("can_update",
-    new Uint8Array(canPacket.buffer, canPacket.byteOffset, canPacket.length), 
+  dashUpdate(packet) {
+    this.uWSApp.publish("data_update",
+    new Uint8Array(packet.buffer, packet.byteOffset, packet.length), 
      true);
   }
 

@@ -6,14 +6,7 @@ import can from 'socketcan'
 // id: 505189072,
 // ext: true,
 // data: <Buffer 80 00 00 00 00 00 00 00>
-const UPDATE_MS = 17; //frequency  sent up to the dash
 const HEADER_BYTE_LENGTH = 5; // bytes
-
-/**
- * 
- * @param {Buffer} msg 
- */
-const defaultCallback = (msg) => {}
 
 class CanbusManager {
   /**
@@ -21,12 +14,15 @@ class CanbusManager {
    * @param {string} channel - Example: vcan0 , can0 , can1
    */
   constructor (channel) {
+    // cached for when we get packet data (havent tested but assuming to lower GC)
+    this.framePacketLength = 0;
+    this.byteLength = 0;
+    this.started = false;
+
     try {
       this.db = Array(10000);  // (4 bytes * 100 = reserved space) a mini-db that contains all of our current CAN data, key is CAN-ID, value is binary data
       this.keys = new Set();   // this Set indicates what messages we've received this "frame".  This is cleared once we've sent the data up to the client.
-      
-      this.signal = null;
-      this.callback = defaultCallback;
+
       this.channel =  can.createRawChannel(channel, true);
       this.channel.addListener("onMessage", (msg) => this.canMessageReceived(msg));
     } catch (error) {
@@ -50,49 +46,11 @@ class CanbusManager {
   }
 
   /**
-   * Starts listening to the canbus - the callback will be called for each message with the provided data
-   * @param {{ (canPacket: Buffer): void; (msg: Buffer): void; }} callback
+   * Starts listening to the canbus - collect data into a dictionary;
    */
-  start(callback) {
-    let framePacketLength = 0;
-    let byteLength = 0;
-
+  start() {
     try {
-      this.callback = callback;
       this.channel.start();
-      this.signal = setInterval(() => {
-        // data we will be sending up - it will be combined into a single packet
-        let buffers = [];
-
-        // total length of packet
-        framePacketLength = 0;
-
-        this.keys.forEach((key, _value, _set) => {
-          byteLength = Buffer.byteLength(this.db[key])
-
-          // allocate space for ID + data's byte_length + actual data
-          const buf = Buffer.allocUnsafe(HEADER_BYTE_LENGTH + byteLength);
-
-          // can ID ( 4 bytes )
-          buf.writeUInt32BE(key, 0);
-
-          // can length ( 1 byte )
-          buf.writeUInt8(byteLength, 4);
-
-          // copy can data (target, target_start, source start) ( 8 bytes)
-          this.db[key].copy(buf, HEADER_BYTE_LENGTH, 0);
-
-          buffers.push(buf);
-          framePacketLength += buf.length;
-        })
-
-        if (framePacketLength) {
-          // send frame packet to anyone connected with us
-          this.callback(Buffer.concat(buffers, framePacketLength));
-        }
-
-        this.keys.clear();
-      }, UPDATE_MS);
       this.started = true;
     } catch (error) {
       console.error("ERROR: SocketServer: ", error);
@@ -101,12 +59,37 @@ class CanbusManager {
     return this.started;
   }
 
+  getLatestPacket() {
+    // data we will be sending up - it will be combined into a single packet
+    let buffers = [];
+
+    // total length of packet
+    this.framePacketLength = 0;
+
+    this.keys.forEach((key, _value, _set) => {
+      this.byteLength = Buffer.byteLength(this.db[key])
+
+      // allocate space for ID + data's byte_length + actual data
+      const buf = Buffer.allocUnsafe(HEADER_BYTE_LENGTH + this.byteLength);
+
+      // can ID ( 4 bytes )
+      buf.writeUInt32BE(key, 0);
+
+      // can length ( 1 byte )
+      buf.writeUInt8(this.byteLength, 4);
+
+      // copy can data (target, target_start, source start) ( 8 bytes)
+      this.db[key].copy(buf, HEADER_BYTE_LENGTH, 0);
+
+      buffers.push(buf);
+      this.framePacketLength += buf.length;
+    })
+
+    this.keys.clear();
+    return Buffer.concat(buffers, this.framePacketLength)
+  }
+
   stop() {
-    if (this.signal) {
-      clearInterval(this.signal);
-    }
-    this.signal = null;
-    this.callback = defaultCallback;
     this.started = false;
     this.channel.stop();
   }

@@ -1,22 +1,32 @@
 import app from './src/app.js';
+import yaml from 'js-yaml';
+import fs from 'fs';
 
 //  https://nodejs.org/dist/latest-v14.x/docs/api/process.html#process_process
 // env vars we will use
 const CAN_CHANNEL =  process.env.CHANNEL
 const NODE_ENV = process.env.NODE_ENV
 
-const dashServer = app(CAN_CHANNEL);
-// Development or Live (starts webserver if live)
-const APP_TYPE = process.env.TYPE || dashServer.TYPES.DEVELOPMENT
 
-process.on('beforeExit', (code) => {
-  console.log('Process beforeExit event with code: ', code);
-  dashServer.stop();
-});
-process.on('exit', (code) => {
-  console.log(`About to exit with code: ${code}`);
-});
+try {
+  const settings = yaml.load(fs.readFileSync('./settings.yaml', 'utf8'));
+  const dashServer = app(CAN_CHANNEL, settings);
+  // Development or Live (starts webserver if live)
+  const APP_TYPE = process.env.TYPE || dashServer.TYPES.DEVELOPMENT
 
-dashServer.start(APP_TYPE);
+  process.on('beforeExit', (code) => {
+    console.log('Process beforeExit event with code: ', code);
+    dashServer.stop();
+  });
+  process.on('exit', (code) => {
+    console.log(`About to exit with code: ${code}`);
+  });
+
+  dashServer.start(APP_TYPE);
+} catch (e) {
+  console.log(e);
+}
+
+
 
 

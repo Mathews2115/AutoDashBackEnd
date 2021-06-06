@@ -1,0 +1,3 @@
+gps:
+  baudrate: 9600
+  odometer: 1
