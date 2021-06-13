@@ -1,7 +1,7 @@
 import FrontEndWebServer from './webserver.js'
 import DashSocketComms from './dashSocketComms.js'
 import CanbusManager from './canbusManager.js'
-import GPSManager from './gpsManager.js'
+import GPSManager from './GPS/gpsManager.js'
 
 // front end web server config
 const FRONT_END_PATH = '/public/dist'

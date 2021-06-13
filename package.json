@@ -11,9 +11,9 @@
   },
   "author": "Michael J Mathews II",
   "dependencies": {
+    "debug": "^4.3.1",
     "express": "^4.17.1",
     "js-yaml": "^4.1.0",
-    "nmea": "^0.1.2",
     "serialport": "^9.1.0",
     "socketcan": "^3.0.0",
     "uWebSockets.js": "github:uNetworking/uWebSockets.js#v18.14.0"
