@@ -24,6 +24,10 @@ class GPSManager {
   // Byte 0 - 0-255 speed in kph
   // Byte 1 - Bit 0: signal acquired | Bit 1: Serial Error
   // Byte 2 - 2 Bytes - odometer
+  /**
+   * 
+   * @returns Buffer
+   */
   getLatestPacket() {
     this.buffer.writeUInt8(Math.min(255, Math.floor(this.speed*0.022369)), 0); // cm/s to mph
     // write flag packet:
@@ -81,7 +85,7 @@ class GPSManager {
           this.started = true;
         } else {
           console.error("ERROR: GPS could not initialize: ", err);
-        }
+        } 
         return this.port.pipe(ubxProtocolParser);
       });
 

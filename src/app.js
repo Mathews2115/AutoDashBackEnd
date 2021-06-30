@@ -1,7 +1,8 @@
 import FrontEndWebServer from './webserver.js'
 import DashSocketComms from './dashSocketComms.js'
-import CanbusManager from './canbusManager.js'
+import CanbusManager from './CAN/canbusManager.js'
 import GPSManager from './GPS/gpsManager.js'
+import ecu from './ecuManager.js'
 
 // front end web server config
 const FRONT_END_PATH = '/public/dist'
@@ -36,20 +37,14 @@ export default function (canChannel, settings) {
         if (type !== app.TYPES.DEVELOPMENT) {
           frontendServer.start();
         }
+        ecu.init();
         dashComms.start();
-        canComms.start();
-        gps.start();
+        canComms.start(ecu.updateFromCanBus);
+        gps.start(ecu.updateFromGPS);
         
         // Update 
         updateInterval = setInterval(() => {
-          let gpsPacket = gps.getLatestPacket();
-          let canPacket = canComms.getLatestPacket();
-          // todo:
-          // structure packet as such:
-          // [GPS PACKET: [0]: data byte length | [1]: data ...byte-length]
-          // [CAN PACKET: [0]: data ... buffer length]
-
-          dashComms.dashUpdate( Buffer.concat([gpsPacket, canPacket], gpsPacket.length + canPacket.length))
+          dashComms.dashUpdate(ecu.latestPacket())
         }, UPDATE_MS);
 
       } catch (error) {
