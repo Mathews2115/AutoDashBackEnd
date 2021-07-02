@@ -52,36 +52,6 @@ class CanbusManager {
     return this.started;
   }
 
-  // getLatestPacket() {
-  //   // data we will be sending up - it will be combined into a single packet
-  //   let buffers = [];
-
-  //   // total length of packet
-  //   this.framePacketLength = 0;
-
-  //   this.keys.forEach((key, _value, _set) => {
-  //     this.byteLength = Buffer.byteLength(this.db[key])
-
-  //     // allocate space for ID + data's byte_length + actual data
-  //     const buf = Buffer.allocUnsafe(HEADER_BYTE_LENGTH + this.byteLength);
-
-  //     // can ID ( 4 bytes )
-  //     buf.writeUInt32BE(key, 0);
-
-  //     // can length ( 1 byte )
-  //     buf.writeUInt8(this.byteLength, 4);
-
-  //     // copy can data (target, target_start, source start) ( 8 bytes)
-  //     this.db[key].copy(buf, HEADER_BYTE_LENGTH, 0);
-
-  //     buffers.push(buf);
-  //     this.framePacketLength += buf.length;
-  //   })
-
-  //   this.keys.clear();
-  //   return Buffer.concat(buffers, this.framePacketLength)
-  // }
-
   stop() {
     this.started = false;
     this.channel.stop();

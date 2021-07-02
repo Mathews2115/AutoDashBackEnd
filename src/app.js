@@ -17,7 +17,7 @@ const WS_URL = ''
 
 export default function (canChannel, settings) {
   const canComms = new CanbusManager(canChannel);
-  const frontendServer = {} //new FrontEndWebServer(FRONT_END_PATH, ENTRY_POINT);
+  // const frontendServer = {} //new FrontEndWebServer(FRONT_END_PATH, ENTRY_POINT);
   const dashComms = new DashSocketComms(WS_URL, WS_PORT);
   const gps = new GPSManager(settings.gps);
   let updateInterval = null;
@@ -34,10 +34,6 @@ export default function (canChannel, settings) {
      */
     start: (type) => {
       try {
-        if (type !== app.TYPES.DEVELOPMENT) {
-          frontendServer.start();
-        }
-        ecu.init();
         dashComms.start();
         canComms.start(ecu.updateFromCanBus);
         gps.start(ecu.updateFromGPS);
@@ -63,7 +59,7 @@ export default function (canChannel, settings) {
       updateInterval = null;
   
       console.log(" -------- Stopping Dash Server   -------------");
-      if (frontendServer && frontendServer.started) frontendServer.stop();
+      // if (frontendServer && frontendServer.started) frontendServer.stop();
       if (dashComms && dashComms.started) dashComms.stop();
       if (canComms && canComms.started) canComms.stop();
       if (gps && gps.started) gps.stop();

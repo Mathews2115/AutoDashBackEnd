@@ -32,6 +32,9 @@ export const DATA_KEYS = {
 
   // Data from GPS
   ODOMETER: keygen(),
+  TRIP_ODOMETER: keygen(), //
+  GPS_SPEEED: keygen(), //m
+  HEADING: keygen(),
 
   // Our Data
   WARNINGS: keygen(),
@@ -40,7 +43,8 @@ Object.freeze(DATA_KEYS);
 
 // Keys for handling the WARNINGS Structure
 export const WARNING_KEYS = {
-  BATT_VOLTAGE: keygen(true), // voltage too low
+  FIRST: keygen(),
+  BATT_VOLTAGE: keygen(), // voltage too low
   OIL_PRESSURE: keygen(), // pressure too low
   ENGINE_TEMPERATURE: keygen(), // temp too high
   ECU_COMM: keygen(), // trouble communicating with ECU via CAN

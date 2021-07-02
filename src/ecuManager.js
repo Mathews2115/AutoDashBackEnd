@@ -1,5 +1,7 @@
-import decoder from "./CAN/racepakDecoder";
-import {DATA_KEYS, WARNING_KEYS} from "./dataKeys"
+import racePackDecoder from "./CAN/racepakDecoder.js";
+import {DATA_KEYS, WARNING_KEYS} from "./dataKeys.js"
+
+const decoder = racePackDecoder; // alias
 
 // TODO move this to yml file
 const OIL_LOW_LIMIT = 15; //psi
@@ -16,7 +18,7 @@ const TYPES = {
   BITFIELD: 4,
 }
 class PacketEntry {
-  constructor(type, fields = null)  {
+  constructor(type)  {
     this.type = type;
     switch (type) {
       case TYPES.ONE_BYTE:
@@ -56,7 +58,7 @@ class DataStore {
     this.packetKeys[DATA_KEYS.BAR_PRESSURE] = new PacketEntry(TYPES.FLOAT); // xxx.x kPa
     this.packetKeys[DATA_KEYS.OIL_PRESSURE] = new PacketEntry(TYPES.TWO_BYTES); // xxx   psi
     this.packetKeys[DATA_KEYS.BATT_VOLTAGE] = new PacketEntry(TYPES.FLOAT); // xx.x volts
-    this.packetKeys[DATA_KEYS.WARNINGS] = new PacketEntry(TYPES.BITFIELD, WARNING_KEYS); 
+    this.packetKeys[DATA_KEYS.WARNINGS] = new PacketEntry(TYPES.BITFIELD); 
 
     this.buffer = Buffer.alloc(Math.max(1024, offset));
 
@@ -80,7 +82,8 @@ class DataStore {
   }
 
   // 0 -> 7
-  updateWarning(bit, value) {
+  updateWarning(id, value) {
+    const bit = id - WARNING_KEYS.FIRST;
     if (bit > 7) throw "I screwed up: error - bit field key cannot be > 7";
     if (value) {
       // set the bit
@@ -95,7 +98,7 @@ class DataStore {
 
 // const ecuDataStore = new Array(MAX_KEYS);
 const ecuDataStore = new DataStore(); // just assign a big ass buffer
-const updateValue = ({id, newValue}) => {
+const updateValue = ({id, data}) => {
 
   // do any special handling depending on the new updated value
   switch (id) {
@@ -115,41 +118,35 @@ const updateValue = ({id, newValue}) => {
     // case DATA_KEYS.BAR_PRESSURE:
     //   break;
     case DATA_KEYS.CTS:
-      ecuDataStore.updateWarning(WARNING_KEYS.ENGINE_TEMPERATURE, (newValue > ENGINE_TEMP_HIGH));
+      ecuDataStore.updateWarning(WARNING_KEYS.ENGINE_TEMPERATURE, (data > ENGINE_TEMP_HIGH));
       break;
     case DATA_KEYS.OIL_PRESSURE:
-      ecuDataStore.updateWarning(WARNING_KEYS.OIL_PRESSURE, (newValue < OIL_LOW_LIMIT));
+      ecuDataStore.updateWarning(WARNING_KEYS.OIL_PRESSURE, (data < OIL_LOW_LIMIT));
       break;
     case DATA_KEYS.BATT_VOLTAGE:
-      ecuDataStore.updateWarning(WARNING_KEYS.BATT_VOLTAGE, (newValue < VOLTAGE_LOW_LIMIT));
+      ecuDataStore.updateWarning(WARNING_KEYS.BATT_VOLTAGE, (data < VOLTAGE_LOW_LIMIT));
       break;
     default:
       break;
   }
-  // write data from CAN BUS to store
-  ecuDataStore.write(id, newValue);
+
+  if (id < WARNING_KEYS.FIRST){
+    // write data from CAN BUS  to store
+    ecuDataStore.write(id, data);
+  } else {
+    ecuDataStore.updateWarning(id, data);
+  }
 }
 
-const serializeData = () => {
-  
-}
-
-// const rawData = new Array(MAX_KEYS);
 const ecu = {
-  init: () => {
-    // rawData.fill(0);
-
-  },
-
 
   /**
  * 
  * @returns {Buffer}
  */
   latestPacket: () => {
-    // return {}
+    return ecuDataStore.buffer;
   },
-
 
   /**
   * @param {{ ts: number; id: number; data: Uint8Array; ext: boolean; } | false} msg 
@@ -157,14 +154,19 @@ const ecu = {
   updateFromCanBus: (msg) => {
     if (msg === false) {
       // canparsing failure, shutdown
-      ecuDataStore[WARNING_KEYS.ECU_COMM] = true;
+      ecuDataStore.updateWarning(WARNING_KEYS.ECU_COMM, true);
     } else {
       decoder.do(msg).forEach(newData => updateValue(newData));
     }
   },
 
   updateFromGPS: (msg) => {
-
+    if (msg === false) {
+      // canparsing failure, shutdown
+      ecuDataStore.updateWarning(WARNING_KEYS.GPS_ERROR, true);
+    } else {
+      msg.forEach(newData => updateValue(newData));
+    }
   },
 
 }

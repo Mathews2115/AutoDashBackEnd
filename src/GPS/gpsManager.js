@@ -1,94 +1,66 @@
 import SerialPort from 'serialport';
 import UBXProtocolParser from './ubx/UbxProtocolParser.js';
 import UBXPacketParser from './ubx/UbxPacketParser.js';
+import { DATA_KEYS, WARNING_KEYS } from '../dataKeys.js';
 
 class GPSManager {
   constructor(settings) {
-
     this.port = null;
     this.baudrate = settings.baudRate || 9600;
     this.port = settings.port || '';
-    this.odometerOffset = settings.currentOdometer || 0; // last saved odometer
     this.started = false;
-    this.speed = 0;  //cm/s
-    this.odometer = 0; //m
-    this.tripOdometer = 0; //m
-    this.error = false;
-    this.signalAcquired = false;
-
-    this.buffer = Buffer.allocUnsafe(1 + 1 + 2) // speed (1 byte), signal aqcuired , odometer(2 bytes)
   }
 
-
-  // Packet Data:
-  // Byte 0 - 0-255 speed in kph
-  // Byte 1 - Bit 0: signal acquired | Bit 1: Serial Error
-  // Byte 2 - 2 Bytes - odometer
-  /**
-   * 
-   * @returns Buffer
-   */
-  getLatestPacket() {
-    this.buffer.writeUInt8(Math.min(255, Math.floor(this.speed*0.022369)), 0); // cm/s to mph
-    // write flag packet:
-    let bitFlags = 0;
-    bitFlags |= this.signalAcquired ? 1 : 0; //0001
-    bitFlags |= this.error ? 2 : 0;          //0010
-    this.buffer.writeUInt8(bitFlags, 1);
-    this.buffer.writeUInt16BE(Math.min(65535, Math.floor(this.odometer*0.000621371) + this.odometerOffset), 2);
-    return this.buffer;
-  }
-
-  onUpdate(data) {
+  parse(data) {
     switch (data.type) {
       case 'NAV-STATUS':
-        this.signalAcquired = data.data.flags.gpsFixOk;
-        break;
+        return [{ id: WARNING_KEYS.GPS_NOT_ACQUIRED, data: !data.data.flags.gpsFixOk}]
   
       case 'NAV-VELNED':
-        this.speed = data.data.gSpeed;
-        this.heading = data.data.heading;
-        break;
-  
+        return [{ id: DATA_KEYS.GPS_SPEEED, data: (Math.min(255, Math.floor(data.data.gSpeed*0.022369)), 0)}, // cm/s to mph;\
+         {id: DATA_KEYS.HEADING, data:  data.data.heading}]
+ 
       case 'NAV-ODO':
-        this.odometer = data.data.totalDistance;
-        this.tripOdometer = data.data.distance;
-        break;
+        return [{ id: DATA_KEYS.ODOMETER, data: Math.floor(data.data.totalDistance*0.000621371)},
+         { id: DATA_KEYS.TRIP_ODOMETER, data: Math.floor(data.data.distance*0.000621371)}]
   
       default:
-        break;
+        return [];
     }
   }
 
-  start() {
+   /**
+   * Starts listening to the canbus - collect data into a dictionary;
+   * @param {Function} [onUpdateCallback]
+   */
+  start(onUpdateCallback) {
     try {
+      const onError = (err) => {
+        console.log(err);
+        onUpdateCallback(false)
+      }
+      
       this.port = new SerialPort(this.port, { baudRate: this.baudrate,  autoOpen: false })
 
       const ubxProtocolParser = new UBXProtocolParser();
       const ubxPacketParser = new UBXPacketParser();
       ubxProtocolParser.pipe(ubxPacketParser);
-      ubxPacketParser.on('data', (data) => { this.onUpdate(data) });
-
-      this.port.on('error', (e) => {
-        console.log(e);
-        this.reset();
-        this.error = true;
-      });
-      this.port.on('close', (d) => {
-        console.log(d)
-        this.reset();
+      ubxPacketParser.on('data', (data) => { 
+        onUpdateCallback(this.parse(data));
       });
 
+      this.port.on('error', (e) => { onError(e); });
+      this.port.on('close', (d) => { console.log(d); });
       this.port.open((err) => {
-        this.error = !!err;
-        if (!this.error) {
+        let error = !!err;
+        if (!error) {
           this.started = true;
         } else {
-          console.error("ERROR: GPS could not initialize: ", err);
+          console.log("ERROR: could not connect to GPS hardware: ", err);
+          onError();
         } 
         return this.port.pipe(ubxProtocolParser);
       });
-
     } catch (error) {
       console.log("ERROR: GPS could not initialize: ", error);
       throw error;
@@ -101,11 +73,6 @@ class GPSManager {
       this.port = null;
     }
     this.started = false;
-  }
-
-  reset() {
-    this.speed = 0;
-    this.signalAcquired = false;
   }
 }
 

@@ -1,4 +1,4 @@
-import { DATA_KEYS } from "../dataKeys";
+import { DATA_KEYS } from "../dataKeys.js";
 
 const ecuSerial = 0x00007ad0 & 0x7ff; // used to decode message IDs
 
