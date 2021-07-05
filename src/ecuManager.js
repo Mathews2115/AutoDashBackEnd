@@ -60,6 +60,11 @@ class DataStore {
     this.packetKeys[DATA_KEYS.BATT_VOLTAGE] = new PacketEntry(TYPES.FLOAT); // xx.x volts
     this.packetKeys[DATA_KEYS.WARNINGS] = new PacketEntry(TYPES.BITFIELD); 
 
+    this.packetKeys[DATA_KEYS.ODOMETER] = new PacketEntry(TYPES.TWO_BYTES); 
+    this.packetKeys[DATA_KEYS.TRIP_ODOMETER] = new PacketEntry(TYPES.TWO_BYTES); //its gonna roll over early, lol - ill fix this at some point
+    this.packetKeys[DATA_KEYS.GPS_SPEEED] = new PacketEntry(TYPES.TWO_BYTES); 
+    // this.packetKeys[DATA_KEYS.HEADING] = new PacketEntry(TYPES.FLOAT); 
+
     this.buffer = Buffer.alloc(Math.max(1024, offset));
 
     this.warningsBuffer = this.buffer.slice(this.packetKeys[DATA_KEYS.WARNINGS].byteOffset);
@@ -105,6 +110,8 @@ const updateValue = ({id, data}) => {
     case DATA_KEYS.FUEL_FLOW:
       // update fuel data
       break;
+    // case DATA_KEYS.PEDAL_POSITION:
+    //   break;
     // case DATA_KEYS.TARGET_AFR:
     //   break;
     // case DATA_KEYS.AFR_AVERAGE:

@@ -44,7 +44,7 @@ const RACEPACK_CAN_MAP = {
   0x1e029000: (data) => {
     return [
       { id: DATA_KEYS.PEDAL_POSITION, data: data.readInt32BE(0) / 256 },
-      { id: DATA_KEYS.FUEL_PRESSURE, data: data.readInt32BE(4) / 256 },
+      // { id: DATA_KEYS.FUEL_PRESSURE, data: data.readInt32BE(4) / 256 },
     ];
   },
 
@@ -106,7 +106,7 @@ const RACEPACK_CAN_MAP = {
    0x1E01D000: (data) => {
     return [
       { id: DATA_KEYS.MAT, data: data.readInt32BE(0) / 256 },
-      { id: DATA_KEYS.TPS, data: data.readInt32BE(4) / 256 },
+      // { id: DATA_KEYS.TPS, data: data.readInt32BE(4) / 256 },
     ];
   },
 
@@ -154,7 +154,7 @@ const racePackDecoder = {
   do: (canMsg) => {
     const decodedId = canMsg.id & 0xfffff800;
     if (!!RACEPACK_CAN_MAP[decodedId]) {
-      return RACEPACK_CAN_MAP[decodedId](canMsg.data.buffer);
+      return RACEPACK_CAN_MAP[decodedId](Buffer.from(canMsg.data.buffer));
     } else {
       return [];
     }
