@@ -38,6 +38,10 @@ export const DATA_KEYS = {
 
   // Our Data
   WARNINGS: keygen(),
+  FUEL_LEVEL: keygen(),
+  CURRENT_MPG: keygen(),
+
+
 };
 Object.freeze(DATA_KEYS);
 

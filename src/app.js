@@ -2,7 +2,7 @@ import FrontEndWebServer from './webserver.js'
 import DashSocketComms from './dashSocketComms.js'
 import CanbusManager from './CAN/canbusManager.js'
 import GPSManager from './GPS/gpsManager.js'
-import ecu from './ecuManager.js'
+import ecuManager from './ecuManager.js'
 
 // front end web server config
 const FRONT_END_PATH = '/public/dist'
@@ -20,6 +20,7 @@ export default function (canChannel, settings) {
   // const frontendServer = {} //new FrontEndWebServer(FRONT_END_PATH, ENTRY_POINT);
   const dashComms = new DashSocketComms(WS_URL, WS_PORT);
   const gps = new GPSManager(settings.gps);
+  const ecu = ecuManager(settings.ecu);
   let updateInterval = null;
   
   const app =  {
@@ -34,6 +35,7 @@ export default function (canChannel, settings) {
      */
     start: (type) => {
       try {
+        ecu.init();
         dashComms.start();
         canComms.start(ecu.updateFromCanBus);
         gps.start(ecu.updateFromGPS);

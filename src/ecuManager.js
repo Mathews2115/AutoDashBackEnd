@@ -1,14 +1,8 @@
 import racePackDecoder from "./CAN/racepakDecoder.js";
 import {DATA_KEYS, WARNING_KEYS} from "./dataKeys.js"
+import {performance} from "perf_hooks";
 
 const decoder = racePackDecoder; // alias
-
-// TODO move this to yml file
-const OIL_LOW_LIMIT = 15; //psi
-const VOLTAGE_LOW_LIMIT = 11.4;
-const ENGINE_TEMP_HIGH = 240;
-
-
 // easy way to keep track where we store data
 let offset = 0;
 const TYPES = {
@@ -41,7 +35,6 @@ class PacketEntry {
     offset += this.byteLength; // Update global offset
   }
 }
-
 class DataStore {
   constructor() {
     // This it the order data is stored; mind the offset generated
@@ -64,10 +57,12 @@ class DataStore {
     this.packetKeys[DATA_KEYS.TRIP_ODOMETER] = new PacketEntry(TYPES.TWO_BYTES); //its gonna roll over early, lol - ill fix this at some point
     this.packetKeys[DATA_KEYS.GPS_SPEEED] = new PacketEntry(TYPES.TWO_BYTES); 
     // this.packetKeys[DATA_KEYS.HEADING] = new PacketEntry(TYPES.FLOAT); 
-
+    this.packetKeys[DATA_KEYS.FUEL_LEVEL] = new PacketEntry(TYPES.ONE_BYTE);
+    this.packetKeys[DATA_KEYS.CURRENT_MPG] = new PacketEntry(TYPES.FLOAT);
     this.buffer = Buffer.alloc(Math.max(1024, offset));
 
     this.warningsBuffer = this.buffer.slice(this.packetKeys[DATA_KEYS.WARNINGS].byteOffset);
+
   }
 
   write(key, value) {
@@ -86,6 +81,19 @@ class DataStore {
     }
   }
 
+  read(key) {
+    switch (this.packetKeys[key].type) {
+      case TYPES.ONE_BYTE:
+        return this.buffer.readInt8(this.packetKeys[key].byteOffset);;
+      case TYPES.TWO_BYTES:
+        return  this.buffer.readInt16BE(this.packetKeys[key].byteOffset);
+      case TYPES.FLOAT:
+        return this.buffer.readFloatBE(this.packetKeys[key].byteOffset);
+      default:
+        throw "Critical Error: missed logic type";
+    }
+  }
+
   // 0 -> 7
   updateWarning(id, value) {
     const bit = id - WARNING_KEYS.FIRST;
@@ -96,19 +104,49 @@ class DataStore {
     } else {
       // clear the bit
       this.warningsBuffer.writeUInt8(this.warningsBuffer.readUInt8() & ~(128 >> bit % 8))
-    }
-    
+    } 
   }
 }
 
-// const ecuDataStore = new Array(MAX_KEYS);
+export default (carSettings) => {
+let msSample = 0;
+let lastFuelSample = 0; // Last Gal / Millisecond sample
 const ecuDataStore = new DataStore(); // just assign a big ass buffer
+let gallonsLeft = carSettings.tank_size;
+
+const init = () => {
+  ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 100); // percent - for now, until we save out our level to HDD
+  msSample = performance.now();
+}
+
 const updateValue = ({id, data}) => {
 
   // do any special handling depending on the new updated value
   switch (id) {
     case DATA_KEYS.FUEL_FLOW:
-      // update fuel data
+      const newMsSample = performance.now();
+      const msDelta = newMsSample - msSample; // ms since last sample
+
+      //  calculate fuel consumption based on the last sample
+      const gpMs = (data * 0.1621) / 3600000; // convert from pounds/hour to gal/hour, then to to gal/millisecond
+      const pMin =  Math.min(lastFuelSample, gpMs);
+      const pMax =  Math.max(lastFuelSample, gpMs);
+      const gallonsConsumed = ((msDelta * (pMax - pMin)) / 2) + (msDelta*pMin);
+
+      // update the fuel level
+      gallonsLeft -= gallonsConsumed;
+
+      // distance (m) = speed (m/millisecond) * time (ms)
+      // calculate distance since last sample
+      const distance = (ecuDataStore.read(DATA_KEYS.GPS_SPEEED)/3600000) * msDelta;
+
+      // write current MPG  
+      ecuDataStore.write(DATA_KEYS.CURRENT_MPG, distance / gallonsConsumed);
+
+      // write percent fuel left
+      ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, Math.floor(gallonsLeft/carSettings.tank_size)* 100);
+      msSample = newMsSample;
+      lastFuelSample = gpMs;
       break;
     // case DATA_KEYS.PEDAL_POSITION:
     //   break;
@@ -125,13 +163,14 @@ const updateValue = ({id, data}) => {
     // case DATA_KEYS.BAR_PRESSURE:
     //   break;
     case DATA_KEYS.CTS:
-      ecuDataStore.updateWarning(WARNING_KEYS.ENGINE_TEMPERATURE, (data > ENGINE_TEMP_HIGH));
+      ecuDataStore.updateWarning(WARNING_KEYS.ENGINE_TEMPERATURE, (data > carSettings.engine_temp_high));
       break;
     case DATA_KEYS.OIL_PRESSURE:
-      ecuDataStore.updateWarning(WARNING_KEYS.OIL_PRESSURE, (data < OIL_LOW_LIMIT));
+      // not connected yets
+      // ecuDataStore.updateWarning(WARNING_KEYS.OIL_PRESSURE, (data < carSettings.oil_low_limit));
       break;
     case DATA_KEYS.BATT_VOLTAGE:
-      ecuDataStore.updateWarning(WARNING_KEYS.BATT_VOLTAGE, (data < VOLTAGE_LOW_LIMIT));
+      ecuDataStore.updateWarning(WARNING_KEYS.BATT_VOLTAGE, (data < carSettings.voltage_low_limit));
       break;
     default:
       break;
@@ -147,6 +186,7 @@ const updateValue = ({id, data}) => {
 
 const ecu = {
 
+  init: init,
   /**
  * 
  * @returns {Buffer}
@@ -178,4 +218,6 @@ const ecu = {
 
 }
 
-export default ecu;
+
+  return ecu;
+}
