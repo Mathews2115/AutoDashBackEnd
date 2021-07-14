@@ -56,7 +56,6 @@ class DataStore {
     this.packetKeys[DATA_KEYS.ODOMETER] = new PacketEntry(TYPES.TWO_BYTES); 
     this.packetKeys[DATA_KEYS.TRIP_ODOMETER] = new PacketEntry(TYPES.TWO_BYTES); //its gonna roll over early, lol - ill fix this at some point
     this.packetKeys[DATA_KEYS.GPS_SPEEED] = new PacketEntry(TYPES.TWO_BYTES); 
-    // this.packetKeys[DATA_KEYS.HEADING] = new PacketEntry(TYPES.FLOAT); 
     this.packetKeys[DATA_KEYS.FUEL_LEVEL] = new PacketEntry(TYPES.ONE_BYTE);
     this.packetKeys[DATA_KEYS.CURRENT_MPG] = new PacketEntry(TYPES.FLOAT);
     this.buffer = Buffer.alloc(Math.max(1024, offset));
@@ -144,7 +143,7 @@ const updateValue = ({id, data}) => {
       ecuDataStore.write(DATA_KEYS.CURRENT_MPG, distance / gallonsConsumed);
 
       // write percent fuel left
-      ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, Math.floor(gallonsLeft/carSettings.tank_size)* 100);
+      ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, Math.floor((gallonsLeft/carSettings.tank_size)* 100));
       msSample = newMsSample;
       lastFuelSample = gpMs;
       break;
@@ -184,8 +183,51 @@ const updateValue = ({id, data}) => {
   }
 }
 
-const ecu = {
 
+/**
+ * if error, turns GPS error flag on
+ * else updates GPS data
+ * Returns updater callback to be used next time
+ * @returns {Function}
+ */
+const gpsUpdate = (msg) => {
+  if (!msg) {
+    // canparsing failure, shutdown
+    return gpsUpdateStateToBroked(msg);
+  } else {
+    msg.forEach(newData => updateValue(newData));
+    return gpsUpdate;
+  }
+}
+
+/**
+ * turns off GPS error; updates GPS data
+ * Returns updater callback to be used next time
+ * @returns {Function}
+ */
+const gpsUpdateStateToWorking = (msg) => {
+  if(msg) {
+    ecuDataStore.updateWarning(WARNING_KEYS.GPS_ERROR, false);
+    return gpsUpdate(msg);
+  } else {
+    return gpsUpdateStateToWorking;
+  }
+}
+
+/**
+ * Turns GPS error on
+ * Returns updater callback to be used next time
+ * @returns {Function}
+ */
+const gpsUpdateStateToBroked = (msg) => {
+  ecuDataStore.updateWarning(WARNING_KEYS.GPS_ERROR, true);
+  return gpsUpdateStateToWorking;
+}
+
+/** @type {Function} */
+let gpsUpdater = gpsUpdate;
+
+const ecu = {
   init: init,
   /**
  * 
@@ -207,15 +249,10 @@ const ecu = {
     }
   },
 
+  // Updates GPS data, if error, will turn error off on next successful update
   updateFromGPS: (msg) => {
-    if (msg === false) {
-      // canparsing failure, shutdown
-      ecuDataStore.updateWarning(WARNING_KEYS.GPS_ERROR, true);
-    } else {
-      msg.forEach(newData => updateValue(newData));
-    }
+    gpsUpdater = gpsUpdater(msg);
   },
-
 }
 
 
