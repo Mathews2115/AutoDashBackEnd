@@ -4,14 +4,11 @@ import UBXPacketParser from './ubx/UbxPacketParser.js';
 import { DATA_KEYS, WARNING_KEYS } from '../dataKeys.js';
 
 class GPSManager {
-  /**
-   * @param {{ baudRate: number; port: string; }} settings
-   */
   constructor(settings) {
     /** @type {SerialPort} */
     this.port = null;
-    this.baudrate = settings.baudRate || 9600;
-    this.portName = settings.port || '';
+    this.baudrate = settings.baudrate || 9600;
+    this.vendorId = settings.vendor_id;
     this.started = false;
     this.onUpdateCallback = (/** @type {any} */ _msg) => {};
     this.ubxProtocolParser = new UBXProtocolParser();
@@ -20,12 +17,30 @@ class GPSManager {
     this.tryingToOpenInterval = null;
   }
 
+  /**
+   * Example result from LIST
+    locationId:undefined
+    manufacturer:'u-blox AG - www.u-blox.com'
+    path:'/dev/ttyACM0'
+    pnpId:'usb-u-blox_AG_-_www.u-blox.com_u-blox_GNSS_receiver-if00'
+    productId:'01a9'
+    serialNumber:undefined
+    vendorId:'1546'
+  */
+  async connectToDevice() {
+    const serialList = await SerialPort.list();
+    const {path} = serialList.find(port => port.vendorId === this.vendorId);
+    return new SerialPort(path, { baudRate: this.baudrate,  autoOpen: false })
+  }
+
   error(err) {
     console.log(err);
     
     if (err) {
       this.onUpdateCallback(false);
-      if(!this.tryingToOpenInterval) {
+
+      // if connected before, attempt to reconnect ... FOREVER
+      if(this.port && !this.tryingToOpenInterval) {
         this.tryingToOpenInterval = setInterval(() => {
           this.open();
         }, 1000);
@@ -72,20 +87,25 @@ class GPSManager {
 
   /**
    * Starts listening to the canbus - collect data into a dictionary;
+   * If you hotswap/change ports in the middle, you'll have to restart the entire app
    * @param {{ (msg: any): void; (_msg: any): void; }} onUpdateCallback
    */
-  start(onUpdateCallback) {
-    this.started = true;
-    this.onUpdateCallback = onUpdateCallback;
-    this.port = new SerialPort(this.portName, { baudRate: this.baudrate,  autoOpen: false })
-    this.ubxPacketParser.on('data', (data) => { 
-      this.onUpdateCallback(this.parseMessage(data));
-    });
-    this.port.on('error', (err) => this.error(err));
-    this.port.on('close', (err) => this.error(err));
-    this.port.on('disconnect', (err) => this.error(err));
-    this.port.pipe(this.ubxProtocolParser);
-    this.open();
+   async start(onUpdateCallback) {
+    try {
+      this.started = true;
+      this.onUpdateCallback = onUpdateCallback;
+      this.ubxPacketParser.on('data', (data) => { 
+        this.onUpdateCallback(this.parseMessage(data));
+      });
+      this.port = await this.connectToDevice();
+      this.port.on('error', (err) => this.error(err));
+      this.port.on('close', (err) => this.error(err));
+      this.port.on('disconnect', (err) => this.error(err));
+      this.port.pipe(this.ubxProtocolParser);
+      this.open();
+    } catch (err) {
+      this.error(err);
+    }
   }
   
   stop() {

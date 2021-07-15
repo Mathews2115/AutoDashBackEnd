@@ -1,8 +1,7 @@
 gps:
   baudrate: 921600
   odometer: 0
-  port: '/dev/ttyACM0'  
-  # port: '/dev/ttyUSB0'
+  vendor_id: '1546'
 ecu: 
   tank_size: 17 # gal
   oil_low_limit: 15 # psi
