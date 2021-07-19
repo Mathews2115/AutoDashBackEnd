@@ -1,8 +1,8 @@
 gps:
   baudrate: 921600
-  odometer: 0
   vendor_id: '1546'
 ecu: 
+  odometer: 16793
   tank_size: 17 # gal
   oil_low_limit: 15 # psi
   voltage_low_limit: 11.5 #volts

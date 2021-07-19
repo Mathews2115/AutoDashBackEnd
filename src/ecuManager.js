@@ -114,6 +114,7 @@ const ecuDataStore = new DataStore(); // just assign a big ass buffer
 let gallonsLeft = carSettings.tank_size;
 
 const init = () => {
+  ecuDataStore.write(DATA_KEYS.ODOMETER, carSettings.odometer);
   ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 100); // percent - for now, until we save out our level to HDD
   msSample = performance.now();
 }
@@ -161,6 +162,10 @@ const updateValue = ({id, data}) => {
     //   break;
     // case DATA_KEYS.BAR_PRESSURE:
     //   break;
+
+    case DATA_KEYS.ODOMETER:
+      ecuDataStore.write(DATA_KEYS.ODOMETER, data + carSettings.odometer);
+      break;
     case DATA_KEYS.CTS:
       ecuDataStore.updateWarning(WARNING_KEYS.ENGINE_TEMPERATURE, (data > carSettings.engine_temp_high));
       break;
