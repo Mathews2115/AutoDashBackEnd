@@ -69,7 +69,7 @@ class GPSManager {
   parseMessage(data) {
     switch (data.type) {
       case 'NAV-STATUS':
-        return [{ id: WARNING_KEYS.GPS_ACQUIRED, data: !data.data.flags.gpsFixOk}]
+        return [{ id: WARNING_KEYS.GPS_NOT_ACQUIRED, data: !data.data.flags.gpsFixOk}]
   
       case 'NAV-VELNED':
         return [{ id: DATA_KEYS.GPS_SPEEED, data: (Math.min(255, Math.floor(data.data.gSpeed*0.022369)), 0)}] // cm/s to mph;\

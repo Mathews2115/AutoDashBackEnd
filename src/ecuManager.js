@@ -1,6 +1,7 @@
 import racePackDecoder from "./CAN/racepakDecoder.js";
-import {DATA_KEYS, WARNING_KEYS} from "./dataKeys.js"
+import {DATA_KEYS, WARNING_KEYS} from "./dataKeys.js";
 import {performance} from "perf_hooks";
+import RingBuffer from "./lib/ringBuffer.js"
 
 const decoder = racePackDecoder; // alias
 // easy way to keep track where we store data
@@ -10,6 +11,7 @@ const TYPES = {
   TWO_BYTES: 2,
   FLOAT: 3,
   BITFIELD: 4,
+  SPECIAL_ARRAY: 5
 }
 class PacketEntry {
   constructor(type)  {
@@ -26,7 +28,9 @@ class PacketEntry {
         break;
       case TYPES.BITFIELD:
         this.byteLength = 1;
-        
+        break;
+      case TYPES.SPECIAL_ARRAY:
+        this.byteLength = 100;
         break;
       default:
         throw "Critical Error: missed logic type";
@@ -58,10 +62,20 @@ class DataStore {
     this.packetKeys[DATA_KEYS.GPS_SPEEED] = new PacketEntry(TYPES.TWO_BYTES); 
     this.packetKeys[DATA_KEYS.FUEL_LEVEL] = new PacketEntry(TYPES.ONE_BYTE);
     this.packetKeys[DATA_KEYS.CURRENT_MPG] = new PacketEntry(TYPES.FLOAT);
+    this.packetKeys[DATA_KEYS.AVERAGE_MPG] = new PacketEntry(TYPES.FLOAT);
+    this.packetKeys[DATA_KEYS.AVERAGE_MPG_POINTS] =  new PacketEntry(TYPES.SPECIAL_ARRAY); // array of average mpg values
     this.buffer = Buffer.alloc(Math.max(1024, offset));
 
-    this.warningsBuffer = this.buffer.slice(this.packetKeys[DATA_KEYS.WARNINGS].byteOffset);
-
+    this.warningsBuffer = this.buffer.slice(this.packetKeys[DATA_KEYS.WARNINGS].byteOffset, 
+      this.packetKeys[DATA_KEYS.WARNINGS].byteOffset+ this.packetKeys[DATA_KEYS.WARNINGS].byteLength);
+    
+    // we will treat this like a queue FIFO
+    this.averageMPGPoints = new RingBuffer(
+      this.buffer.slice(
+        this.packetKeys[DATA_KEYS.AVERAGE_MPG_POINTS].byteOffset,
+        this.packetKeys[DATA_KEYS.AVERAGE_MPG_POINTS].byteOffset + this.packetKeys[DATA_KEYS.AVERAGE_MPG_POINTS].byteLength
+      )
+    );
   }
 
   write(key, value) {
@@ -88,6 +102,7 @@ class DataStore {
         return  this.buffer.readInt16BE(this.packetKeys[key].byteOffset);
       case TYPES.FLOAT:
         return this.buffer.readFloatBE(this.packetKeys[key].byteOffset);
+        break;
       default:
         throw "Critical Error: missed logic type";
     }
@@ -105,10 +120,18 @@ class DataStore {
       this.warningsBuffer.writeUInt8(this.warningsBuffer.readUInt8() & ~(128 >> bit % 8))
     } 
   }
+
+  readWarning(id) {
+    const bit = id - WARNING_KEYS.FIRST;
+    if (bit > 7) throw "I screwed up: error - bit field key cannot be > 7";
+    return (this.warningsBuffer.readUInt8() & (128 >> bit % 8)) !== 0;
+  }
 }
 
 export default (carSettings) => {
+let mpgAverageMs = 0;
 let msSample = 0;
+let distance = 0
 let lastFuelSample = 0; // Last Gal / Millisecond sample
 const ecuDataStore = new DataStore(); // just assign a big ass buffer
 let gallonsLeft = carSettings.tank_size;
@@ -116,7 +139,13 @@ let gallonsLeft = carSettings.tank_size;
 const init = () => {
   ecuDataStore.write(DATA_KEYS.ODOMETER, carSettings.odometer);
   ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 100); // percent - for now, until we save out our level to HDD
+  ecuDataStore.write(DATA_KEYS.AVERAGE_MPG, 0);
+  ecuDataStore.write(DATA_KEYS.CURRENT_MPG, 0);
   msSample = performance.now();
+  mpgAverageMs =  performance.now();
+
+  // TEST CODE
+  ecuDataStore.write(DATA_KEYS.GPS_SPEEED,25);
 }
 
 const updateValue = ({id, data}) => {
@@ -129,40 +158,32 @@ const updateValue = ({id, data}) => {
 
       //  calculate fuel consumption based on the last sample
       const gpMs = (data * 0.1621) / 3600000; // convert from pounds/hour to gal/hour, then to to gal/millisecond
-      const pMin =  Math.min(lastFuelSample, gpMs);
-      const pMax =  Math.max(lastFuelSample, gpMs);
-      const gallonsConsumed = ((msDelta * (pMax - pMin)) / 2) + (msDelta*pMin);
+      const pMin = Math.min(lastFuelSample, gpMs);
+      const gallonsConsumed = ((msDelta * (Math.max(lastFuelSample, gpMs) - pMin)) / 2) + (msDelta*pMin);
 
       // update the fuel level
       gallonsLeft -= gallonsConsumed;
 
-      // distance (m) = speed (m/millisecond) * time (ms)
+      // SPEED BASED DISTANCE - distance (m) = speed (m/millisecond) * time (ms)
       // calculate distance since last sample
-      const distance = (ecuDataStore.read(DATA_KEYS.GPS_SPEEED)/3600000) * msDelta;
-
-      // write current MPG  
-      ecuDataStore.write(DATA_KEYS.CURRENT_MPG, distance / gallonsConsumed);
-
-      // write percent fuel left
-      ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, Math.floor((gallonsLeft/carSettings.tank_size)* 100));
+      // we do this because the odometer is in mile denom; where as can get tiny slices of a mile traveled based on the speed and time
+      distance = (ecuDataStore.read(DATA_KEYS.GPS_SPEEED)/3600000) * msDelta;
+      
+      // calc average MPGs
+      const currentMpg = distance / gallonsConsumed;      
+      
+      // add a new sample every 5 seconds
+      if (newMsSample - mpgAverageMs > 5000) {
+        mpgAverageMs = newMsSample;
+        ecuDataStore.averageMPGPoints.push(currentMpg);
+        ecuDataStore.write(DATA_KEYS.AVERAGE_MPG, ecuDataStore.averageMPGPoints.average);
+      }
+      ecuDataStore.write(DATA_KEYS.CURRENT_MPG, currentMpg);
+      ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, Math.ceil((gallonsLeft/carSettings.tank_size)* 100));
+      
       msSample = newMsSample;
       lastFuelSample = gpMs;
       break;
-    // case DATA_KEYS.PEDAL_POSITION:
-    //   break;
-    // case DATA_KEYS.TARGET_AFR:
-    //   break;
-    // case DATA_KEYS.AFR_AVERAGE:
-    //   break;
-    // case DATA_KEYS.IGNITION_TIMING:
-    //   break;
-    // case DATA_KEYS.MAP:
-    //   break;
-    // case DATA_KEYS.MAT:
-    //   break;
-    // case DATA_KEYS.BAR_PRESSURE:
-    //   break;
-
     case DATA_KEYS.ODOMETER:
       ecuDataStore.write(DATA_KEYS.ODOMETER, data + carSettings.odometer);
       break;

@@ -40,8 +40,8 @@ export const DATA_KEYS = {
   WARNINGS: keygen(),
   FUEL_LEVEL: keygen(),
   CURRENT_MPG: keygen(),
-
-
+  AVERAGE_MPG: keygen(),
+  AVERAGE_MPG_POINTS: keygen(),
 };
 Object.freeze(DATA_KEYS);
 
@@ -54,7 +54,7 @@ export const WARNING_KEYS = {
   LOW_FUEL: keygen(),
   ENGINE_TEMPERATURE: keygen(), // temp too high
   ECU_COMM: keygen(), // trouble communicating with ECU via CAN
-  GPS_ACQUIRED: keygen(), // GPS working / or no 2d/3d fix aqcuired yet
+  GPS_NOT_ACQUIRED: keygen(), // GPS working / or no 2d/3d fix aqcuired yet
   GPS_ERROR: keygen(), // some sort of untracked error occurred
   COMM_ERROR: keygen(), 
 }

@@ -22,6 +22,41 @@ export default function (canChannel, settings) {
   const gps = new GPSManager(settings.gps);
   const ecu = ecuManager(settings.ecu);
   let updateInterval = null;
+
+  const startApp = () => {
+    try {
+      ecu.init();
+      dashComms.start();
+      canComms.start(ecu.updateFromCanBus);
+      gps.start(ecu.updateFromGPS);
+      
+      // Update 
+      updateInterval = setInterval(() => {
+        dashComms.dashUpdate(ecu.latestPacket())
+      }, UPDATE_MS);
+
+    } catch (error) {
+      // if catchable error occurred, attempt to gracefully stop everything first
+      if(dashComms && dashComms.started) {
+        dashComms.notifyError();
+      }
+      stopApp();
+    }
+  }
+
+  const stopApp = () => {
+    if (updateInterval) {
+      clearInterval(updateInterval);
+    }
+    updateInterval = null;
+
+    console.log(" -------- Stopping Dash Server   -------------");
+    // if (frontendServer && frontendServer.started) frontendServer.stop();
+    if (dashComms && dashComms.started) dashComms.stop();
+    if (canComms && canComms.started) canComms.stop();
+    if (gps && gps.started) gps.stop();
+    console.log(" -------- STOPPED   -------------");
+  }
   
   const app =  {
     TYPES: {
@@ -33,40 +68,8 @@ export default function (canChannel, settings) {
      * Starts the all comms (listening to the car CAN, talking to the dash client)
      * @param {string} type 
      */
-    start: (type) => {
-      try {
-        ecu.init();
-        dashComms.start();
-        canComms.start(ecu.updateFromCanBus);
-        gps.start(ecu.updateFromGPS);
-        
-        // Update 
-        updateInterval = setInterval(() => {
-          dashComms.dashUpdate(ecu.latestPacket())
-        }, UPDATE_MS);
-
-      } catch (error) {
-        // if catchable error occurred, attempt to gracefully stop everything first
-        if(dashComms && dashComms.started) {
-          dashComms.notifyError();
-        }
-        stop();
-      }
-    },
-
-    stop: () => {
-      if (updateInterval) {
-        clearInterval(updateInterval);
-      }
-      updateInterval = null;
-  
-      console.log(" -------- Stopping Dash Server   -------------");
-      // if (frontendServer && frontendServer.started) frontendServer.stop();
-      if (dashComms && dashComms.started) dashComms.stop();
-      if (canComms && canComms.started) canComms.stop();
-      if (gps && gps.started) gps.stop();
-      console.log(" -------- STOPPED   -------------");
-    }
+    start: startApp,
+    stop: stopApp,
   }
 
   return app;

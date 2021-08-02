@@ -12,7 +12,7 @@ try {
   const settings = yaml.load(fs.readFileSync('./settings.yaml', 'utf8'));
   const dashServer = app(CAN_CHANNEL, settings);
   // Development or Live (starts webserver if live)
-  const APP_TYPE = process.env.TYPE || dashServer.TYPES.DEVELOPMENT
+  // const APP_TYPE = process.env.TYPE || dashServer.TYPES.DEVELOPMENT
 
   process.on('beforeExit', (code) => {
     console.log('Process beforeExit event with code: ', code);
@@ -22,7 +22,7 @@ try {
     console.log(`About to exit with code: ${code}`);
   });
 
-  dashServer.start(APP_TYPE);
+  dashServer.start();
 } catch (e) {
   console.log(e);
 }
