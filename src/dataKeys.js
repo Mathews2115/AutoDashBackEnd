@@ -42,6 +42,7 @@ export const DATA_KEYS = {
   CURRENT_MPG: keygen(),
   AVERAGE_MPG: keygen(),
   AVERAGE_MPG_POINTS: keygen(),
+  AVERAGE_MPG_POINT_INDEX: keygen(),
 };
 Object.freeze(DATA_KEYS);
 

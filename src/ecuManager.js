@@ -64,6 +64,7 @@ class DataStore {
     this.packetKeys[DATA_KEYS.CURRENT_MPG] = new PacketEntry(TYPES.FLOAT);
     this.packetKeys[DATA_KEYS.AVERAGE_MPG] = new PacketEntry(TYPES.FLOAT);
     this.packetKeys[DATA_KEYS.AVERAGE_MPG_POINTS] =  new PacketEntry(TYPES.SPECIAL_ARRAY); // array of average mpg values
+    this.packetKeys[DATA_KEYS.AVERAGE_MPG_POINT_INDEX] = new PacketEntry(TYPES.ONE_BYTE);
     this.buffer = Buffer.alloc(Math.max(1024, offset));
 
     this.warningsBuffer = this.buffer.slice(this.packetKeys[DATA_KEYS.WARNINGS].byteOffset, 
@@ -170,12 +171,13 @@ const updateValue = ({id, data}) => {
       distance = (ecuDataStore.read(DATA_KEYS.GPS_SPEEED)/3600000) * msDelta;
       
       // calc average MPGs
-      const currentMpg = distance / gallonsConsumed;      
+      const currentMpg = Math.floor(distance / gallonsConsumed);      
       
       // add a new sample every 5 seconds
       if (newMsSample - mpgAverageMs > 5000) {
         mpgAverageMs = newMsSample;
         ecuDataStore.averageMPGPoints.push(currentMpg);
+        ecuDataStore.write(DATA_KEYS.AVERAGE_MPG_POINT_INDEX, ecuDataStore.averageMPGPoints.frontOffset);
         ecuDataStore.write(DATA_KEYS.AVERAGE_MPG, ecuDataStore.averageMPGPoints.average);
       }
       ecuDataStore.write(DATA_KEYS.CURRENT_MPG, currentMpg);

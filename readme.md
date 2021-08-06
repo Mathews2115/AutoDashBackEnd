@@ -92,3 +92,10 @@ Monitor data is continuously broadcast by the HEFI.
 # Cheatsheets
 * log file of service
   * `journalctl `
+
+
+# Personal Notes:
+```
+~ cd development/AutoDashBackEnd                                       
+➜  AutoDashBackEnd git:(main) ✗ canplayer vcan0=can0  -I ./can_dumps/candump-racepack-running.log -li
+```
