@@ -1,44 +1,10 @@
+import { performance } from "perf_hooks";
 import racePackDecoder from "./CAN/racepakDecoder.js";
-import {DATA_KEYS, WARNING_KEYS} from "./dataKeys.js";
-import {performance} from "perf_hooks";
-import RingBuffer from "./lib/ringBuffer.js"
-
+import { DATA_KEYS, WARNING_KEYS } from "./dataKeys.js";
+import { PacketEntry, TYPES } from "./lib/PacketEntry.js";
+import RingBuffer from "./lib/ringBuffer.js";
 const decoder = racePackDecoder; // alias
-// easy way to keep track where we store data
-let offset = 0;
-const TYPES = {
-  ONE_BYTE: 1,
-  TWO_BYTES: 2,
-  FLOAT: 3,
-  BITFIELD: 4,
-  SPECIAL_ARRAY: 5
-}
-class PacketEntry {
-  constructor(type)  {
-    this.type = type;
-    switch (type) {
-      case TYPES.ONE_BYTE:
-        this.byteLength = 1;
-        break;
-      case TYPES.TWO_BYTES:
-        this.byteLength = 2;
-        break;
-      case TYPES.FLOAT:
-        this.byteLength = 4;
-        break;
-      case TYPES.BITFIELD:
-        this.byteLength = 1;
-        break;
-      case TYPES.SPECIAL_ARRAY:
-        this.byteLength = 100;
-        break;
-      default:
-        throw "Critical Error: missed logic type";
-    }
-    this.byteOffset = offset;
-    offset += this.byteLength; // Update global offset
-  }
-}
+
 class DataStore {
   constructor() {
     // This it the order data is stored; mind the offset generated
@@ -65,7 +31,7 @@ class DataStore {
     this.packetKeys[DATA_KEYS.AVERAGE_MPG] = new PacketEntry(TYPES.FLOAT);
     this.packetKeys[DATA_KEYS.AVERAGE_MPG_POINTS] =  new PacketEntry(TYPES.SPECIAL_ARRAY); // array of average mpg values
     this.packetKeys[DATA_KEYS.AVERAGE_MPG_POINT_INDEX] = new PacketEntry(TYPES.ONE_BYTE);
-    this.buffer = Buffer.alloc(Math.max(1024, offset));
+    this.buffer = Buffer.alloc(Math.max(1024, PacketEntry.OFFSET));
 
     this.warningsBuffer = this.buffer.slice(this.packetKeys[DATA_KEYS.WARNINGS].byteOffset, 
       this.packetKeys[DATA_KEYS.WARNINGS].byteOffset+ this.packetKeys[DATA_KEYS.WARNINGS].byteLength);
@@ -130,159 +96,162 @@ class DataStore {
 }
 
 export default (carSettings) => {
-let mpgAverageMs = 0;
-let msSample = 0;
-let distance = 0
-let lastFuelSample = 0; // Last Gal / Millisecond sample
-const ecuDataStore = new DataStore(); // just assign a big ass buffer
-let gallonsLeft = carSettings.tank_size;
+  let msSample = 0;
+  let lastMpgSampleTime = 0;
+  let distance = 0
+  let lastFuelSample = 0; // Last Gal / Millisecond sample
+  const ecuDataStore = new DataStore(); // just assign a big ass buffer
+  let gallonsLeft = carSettings.tank_size;
+  let mpgSampler = new RingBuffer(Buffer.alloc(1024));
 
-const init = () => {
-  ecuDataStore.write(DATA_KEYS.ODOMETER, carSettings.odometer);
-  ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 100); // percent - for now, until we save out our level to HDD
-  ecuDataStore.write(DATA_KEYS.AVERAGE_MPG, 0);
-  ecuDataStore.write(DATA_KEYS.CURRENT_MPG, 0);
-  msSample = performance.now();
-  mpgAverageMs =  performance.now();
+  const init = () => {
+    ecuDataStore.write(DATA_KEYS.ODOMETER, carSettings.odometer);
+    ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 100); // percent - for now, until we save out our level to HDD
+    ecuDataStore.write(DATA_KEYS.AVERAGE_MPG, 0);
+    ecuDataStore.write(DATA_KEYS.CURRENT_MPG, 0);
+    msSample = performance.now();
+    lastMpgSampleTime = performance.now();
 
-  // TEST CODE
-  ecuDataStore.write(DATA_KEYS.GPS_SPEEED,25);
-}
-
-const updateValue = ({id, data}) => {
-
-  // do any special handling depending on the new updated value
-  switch (id) {
-    case DATA_KEYS.FUEL_FLOW:
-      const newMsSample = performance.now();
-      const msDelta = newMsSample - msSample; // ms since last sample
-
-      //  calculate fuel consumption based on the last sample
-      const gpMs = (data * 0.1621) / 3600000; // convert from pounds/hour to gal/hour, then to to gal/millisecond
-      const pMin = Math.min(lastFuelSample, gpMs);
-      const gallonsConsumed = ((msDelta * (Math.max(lastFuelSample, gpMs) - pMin)) / 2) + (msDelta*pMin);
-
-      // update the fuel level
-      gallonsLeft -= gallonsConsumed;
-
-      // SPEED BASED DISTANCE - distance (m) = speed (m/millisecond) * time (ms)
-      // calculate distance since last sample
-      // we do this because the odometer is in mile denom; where as can get tiny slices of a mile traveled based on the speed and time
-      distance = (ecuDataStore.read(DATA_KEYS.GPS_SPEEED)/3600000) * msDelta;
-      
-      // calc average MPGs
-      const currentMpg = Math.floor(distance / gallonsConsumed);      
-      
-      // add a new sample every 5 seconds
-      if (newMsSample - mpgAverageMs > 5000) {
-        mpgAverageMs = newMsSample;
-        ecuDataStore.averageMPGPoints.push(currentMpg);
-        ecuDataStore.write(DATA_KEYS.AVERAGE_MPG_POINT_INDEX, ecuDataStore.averageMPGPoints.frontOffset);
-        ecuDataStore.write(DATA_KEYS.AVERAGE_MPG, ecuDataStore.averageMPGPoints.average);
-      }
-      ecuDataStore.write(DATA_KEYS.CURRENT_MPG, currentMpg);
-      ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, Math.ceil((gallonsLeft/carSettings.tank_size)* 100));
-      
-      msSample = newMsSample;
-      lastFuelSample = gpMs;
-      break;
-    case DATA_KEYS.ODOMETER:
-      ecuDataStore.write(DATA_KEYS.ODOMETER, data + carSettings.odometer);
-      break;
-    case DATA_KEYS.CTS:
-      ecuDataStore.updateWarning(WARNING_KEYS.ENGINE_TEMPERATURE, (data > carSettings.engine_temp_high));
-      break;
-    case DATA_KEYS.OIL_PRESSURE:
-      // not connected yets
-      // ecuDataStore.updateWarning(WARNING_KEYS.OIL_PRESSURE, (data < carSettings.oil_low_limit));
-      break;
-    case DATA_KEYS.BATT_VOLTAGE:
-      ecuDataStore.updateWarning(WARNING_KEYS.BATT_VOLTAGE, (data < carSettings.voltage_low_limit));
-      break;
-    default:
-      break;
+    // TEST CODE
+    ecuDataStore.write(DATA_KEYS.GPS_SPEEED,25);
   }
 
-  if (id < WARNING_KEYS.FIRST){
-    // write data from CAN BUS  to store
-    ecuDataStore.write(id, data);
-  } else {
-    ecuDataStore.updateWarning(id, data);
+  const updateValue = ({id, data}) => {
+    // do any special handling depending on the new updated value
+    switch (id) {
+      case DATA_KEYS.FUEL_FLOW:
+        const newMsSample = performance.now();
+        const msDelta = newMsSample - msSample; // ms since last sample
+
+        //  calculate fuel consumption based on the last sample
+        const gpMs = (data * 0.1621) / 3600000; // convert from pounds/hour to gal/hour, then to to gal/millisecond
+        const pMin = Math.min(lastFuelSample, gpMs);
+        const gallonsConsumed = ((msDelta * (Math.max(lastFuelSample, gpMs) - pMin)) / 2) + (msDelta*pMin);
+
+        // update the fuel level
+        gallonsLeft -= gallonsConsumed;
+
+        // SPEED BASED DISTANCE - distance (m) = speed (m/millisecond) * time (ms)
+        // calculate distance since last sample
+        // we do this because the odometer is in mile denom; where as can get tiny slices of a mile traveled based on the speed and time
+        distance = (ecuDataStore.read(DATA_KEYS.GPS_SPEEED)/3600000) * msDelta;
+        
+        // calc average MPGs
+        const currentMpg = Math.floor(distance / gallonsConsumed);      
+        
+        // add a new sample every 5 seconds
+        // TODO:  instead of currentMPG - keep a average of the last 5 seconds and then store that insteads
+        if (newMsSample -  lastMpgSampleTime > 5000) {
+          lastMpgSampleTime = newMsSample;
+          ecuDataStore.averageMPGPoints.push(mpgSampler.average);
+          ecuDataStore.write(DATA_KEYS.AVERAGE_MPG_POINT_INDEX, ecuDataStore.averageMPGPoints.frontOffset);
+          ecuDataStore.write(DATA_KEYS.AVERAGE_MPG, ecuDataStore.averageMPGPoints.average);
+          mpgSampler.reset();
+        } else {
+          mpgSampler.push(currentMpg);
+        }
+
+        ecuDataStore.write(DATA_KEYS.CURRENT_MPG, currentMpg);
+        ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, Math.ceil((gallonsLeft/carSettings.tank_size)* 100));
+        
+        msSample = newMsSample;
+        lastFuelSample = gpMs;
+        break;
+      case DATA_KEYS.ODOMETER:
+        ecuDataStore.write(DATA_KEYS.ODOMETER, data + carSettings.odometer);
+        break;
+      case DATA_KEYS.CTS:
+        ecuDataStore.updateWarning(WARNING_KEYS.ENGINE_TEMPERATURE, (data > carSettings.engine_temp_high));
+        break;
+      case DATA_KEYS.OIL_PRESSURE:
+        // not connected yets
+        // ecuDataStore.updateWarning(WARNING_KEYS.OIL_PRESSURE, (data < carSettings.oil_low_limit));
+        break;
+      case DATA_KEYS.BATT_VOLTAGE:
+        ecuDataStore.updateWarning(WARNING_KEYS.BATT_VOLTAGE, (data < carSettings.voltage_low_limit));
+        break;
+      default:
+        break;
+    }
+
+    if (id < WARNING_KEYS.FIRST){
+      // write data from CAN BUS  to store
+      ecuDataStore.write(id, data);
+    } else {
+      ecuDataStore.updateWarning(id, data);
+    }
   }
-}
 
 
-/**
- * if error, turns GPS error flag on
- * else updates GPS data
- * Returns updater callback to be used next time
- * @returns {Function}
- */
-const gpsUpdate = (msg) => {
-  if (!msg) {
-    // canparsing failure, shutdown
-    return gpsUpdateStateToBroked(msg);
-  } else {
-    msg.forEach(newData => updateValue(newData));
-    return gpsUpdate;
+  /**
+   * if error, turns GPS error flag on
+   * else updates GPS data
+   * Returns updater callback to be used next time
+   * @returns {Function}
+   */
+  const gpsUpdate = (msg) => {
+    if (!msg) {
+      // canparsing failure, shutdown
+      return gpsUpdateStateToBroked(msg);
+    } else {
+      msg.forEach(newData => updateValue(newData));
+      return gpsUpdate;
+    }
   }
-}
 
-/**
- * turns off GPS error; updates GPS data
- * Returns updater callback to be used next time
- * @returns {Function}
- */
-const gpsUpdateStateToWorking = (msg) => {
-  if(msg) {
-    ecuDataStore.updateWarning(WARNING_KEYS.GPS_ERROR, false);
-    return gpsUpdate(msg);
-  } else {
+  /**
+   * turns off GPS error; updates GPS data
+   * Returns updater callback to be used next time
+   * @returns {Function}
+   */
+  const gpsUpdateStateToWorking = (msg) => {
+    if(msg) {
+      ecuDataStore.updateWarning(WARNING_KEYS.GPS_ERROR, false);
+      return gpsUpdate(msg);
+    } else {
+      return gpsUpdateStateToWorking;
+    }
+  }
+
+  /**
+   * Turns GPS error on
+   * Returns updater callback to be used next time
+   * @returns {Function}
+   */
+  const gpsUpdateStateToBroked = (msg) => {
+    ecuDataStore.updateWarning(WARNING_KEYS.GPS_ERROR, true);
     return gpsUpdateStateToWorking;
   }
-}
 
-/**
- * Turns GPS error on
- * Returns updater callback to be used next time
- * @returns {Function}
- */
-const gpsUpdateStateToBroked = (msg) => {
-  ecuDataStore.updateWarning(WARNING_KEYS.GPS_ERROR, true);
-  return gpsUpdateStateToWorking;
-}
+  /** @type {Function} */
+  let gpsUpdater = gpsUpdate;
 
-/** @type {Function} */
-let gpsUpdater = gpsUpdate;
+  const ecu = {
+    init: init,
+    /**
+   * 
+   * @returns {Buffer}
+   */
+    latestPacket: () => {
+      return ecuDataStore.buffer;
+    },
 
-const ecu = {
-  init: init,
-  /**
- * 
- * @returns {Buffer}
- */
-  latestPacket: () => {
-    return ecuDataStore.buffer;
-  },
+    /**
+    * @param {{ ts: number; id: number; data: Uint8Array; ext: boolean; } | false} msg 
+    */
+    updateFromCanBus: (msg) => {
+      if (msg === false) {
+        // canparsing failure, shutdown
+        ecuDataStore.updateWarning(WARNING_KEYS.ECU_COMM, true);
+      } else {
+        decoder.do(msg).forEach(newData => updateValue(newData));
+      }
+    },
 
-  /**
-  * @param {{ ts: number; id: number; data: Uint8Array; ext: boolean; } | false} msg 
-  */
-  updateFromCanBus: (msg) => {
-    if (msg === false) {
-      // canparsing failure, shutdown
-      ecuDataStore.updateWarning(WARNING_KEYS.ECU_COMM, true);
-    } else {
-      decoder.do(msg).forEach(newData => updateValue(newData));
-    }
-  },
-
-  // Updates GPS data, if error, will turn error off on next successful update
-  updateFromGPS: (msg) => {
-    gpsUpdater = gpsUpdater(msg);
-  },
-}
-
-
+    // Updates GPS data, if error, will turn error off on next successful update
+    updateFromGPS: (msg) => {
+      gpsUpdater = gpsUpdater(msg);
+    },
+  }
   return ecu;
 }

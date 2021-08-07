@@ -7,16 +7,20 @@ class RingBuffer {
       /** @type {Buffer} */
       this.buffer = buffer;
       this.buffer.fill(0);
-      this.frontOffset = 0;
+      this.frontOffset = 0; // where the current front of the buffer is - will wrap around when it his the length of the buffer
+      this.length = 0; // curent length of the filled buffer; wwill cap at the buffer.length
     }
 
     get average() {
       let sum = 0;
-      const length = this.buffer.length - 1;
+      //  minor optimization for smaller buffers: 
+      //  If the ring buffer hasnt been filled out, then that means the index offset is still zero, 
+      //  so we only want to iterate over the filled out buffer and not waste time on the unfilled part
+      const length = Math.min(this.buffer.length - 1, this.length-1);
       for (let i = 0; i < length; i++) {
         sum += this.buffer.readUInt8(i);
       }
-      return sum / this.buffer.length;
+      return sum / this.length;
     }
 
     /**
@@ -25,6 +29,7 @@ class RingBuffer {
     push(value) {
         this.buffer.writeUInt8(value, this.frontOffset);
         this.frontOffset++;
+        this.length = Math.min(this.length + 1, this.buffer.length);
         if (this.frontOffset > this.buffer.length - 1) {
             this.frontOffset = 0;
         }
@@ -34,8 +39,10 @@ class RingBuffer {
       return this.buffer.readUInt8(this.frontOffset);
     }
 
-    legnth() {
-      return this.buffer.length;
+    reset() {
+      this.length = 0;
+      this.buffer.fill(0);
+      this.frontOffset = 0;
     }
 }
 
