@@ -3,6 +3,7 @@ import DashSocketComms from './dashSocketComms.js'
 import CanbusManager from './CAN/canbusManager.js'
 import GPSManager from './GPS/gpsManager.js'
 import ecuManager from './ecuManager.js'
+import { appSettingsManager } from './appSettingsManager.js'
 
 // front end web server config
 const FRONT_END_PATH = '/public/dist'
@@ -14,34 +15,47 @@ const UPDATE_MS = 33; //frequency  sent up to the dash  30fps (about 60hz)
 const WS_PORT = 3333;
 const WS_URL = ''
 
-
 export default function (canChannel, settings) {
   const canComms = new CanbusManager(canChannel);
   // const frontendServer = {} //new FrontEndWebServer(FRONT_END_PATH, ENTRY_POINT);
   const dashComms = new DashSocketComms(WS_URL, WS_PORT);
   const gps = new GPSManager(settings.gps);
   const ecu = ecuManager(settings.ecu);
+  const appSettings = appSettingsManager(settings);
   let updateInterval = null;
+  let savingUpdateInterval = null;
 
   const startApp = () => {
     try {
-      ecu.init();
+      const persistantData = appSettings.init();
+      ecu.init(persistantData);
       dashComms.start();
       canComms.start(ecu.updateFromCanBus);
       gps.start(ecu.updateFromGPS);
       
-      // Update 
+      // Frontend update 
       updateInterval = setInterval(() => {
         dashComms.dashUpdate(ecu.latestPacket())
       }, UPDATE_MS);
 
+      //file saving
+      savingUpdateInterval = setInterval(() => {
+        appSettings.saveSettings(ecu.persistantData);
+      }, 1000);
+
+
     } catch (error) {
-      // if catchable error occurred, attempt to gracefully stop everything first
-      if(dashComms && dashComms.started) {
-        dashComms.notifyError();
-      }
-      stopApp();
+      onError(error);
     }
+  }
+
+  const onError = (error) => {
+    console.error(error);
+    // if catchable error occurred, attempt to gracefully stop everything first
+    if(dashComms && dashComms.started) {
+      dashComms.notifyError();
+    }
+    stopApp();
   }
 
   const stopApp = () => {

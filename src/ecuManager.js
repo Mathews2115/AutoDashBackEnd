@@ -3,6 +3,7 @@ import racePackDecoder from "./CAN/racepakDecoder.js";
 import { DATA_KEYS, WARNING_KEYS } from "./dataKeys.js";
 import { PacketEntry, TYPES } from "./lib/PacketEntry.js";
 import RingBuffer from "./lib/ringBuffer.js";
+
 const decoder = racePackDecoder; // alias
 
 class DataStore {
@@ -99,12 +100,16 @@ export default (carSettings) => {
   let msSample = 0;
   let lastMpgSampleTime = 0;
   let distance = 0
-  let lastFuelSample = 0; // Last Gal / Millisecond sample
-  const ecuDataStore = new DataStore(); // just assign a big ass buffer
-  let gallonsLeft = carSettings.tank_size;
+  let lastFuelSample = 0;                 // Last Gal / Millisecond sample
+  const ecuDataStore = new DataStore();   // just assign a big ass buffer
   let mpgSampler = new RingBuffer(Buffer.alloc(1024));
 
-  const init = () => {
+  const persistantData = {
+    gallonsLeft: 0,
+  }
+
+  const init = ({ gallonsLeft }) => {
+    persistantData.gallonsLeft = gallonsLeft;
     ecuDataStore.write(DATA_KEYS.ODOMETER, carSettings.odometer);
     ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 100); // percent - for now, until we save out our level to HDD
     ecuDataStore.write(DATA_KEYS.AVERAGE_MPG, 0);
@@ -129,7 +134,7 @@ export default (carSettings) => {
         const gallonsConsumed = ((msDelta * (Math.max(lastFuelSample, gpMs) - pMin)) / 2) + (msDelta*pMin);
 
         // update the fuel level
-        gallonsLeft -= gallonsConsumed;
+        persistantData.gallonsLeft -= gallonsConsumed;
 
         // SPEED BASED DISTANCE - distance (m) = speed (m/millisecond) * time (ms)
         // calculate distance since last sample
@@ -152,7 +157,7 @@ export default (carSettings) => {
         }
 
         ecuDataStore.write(DATA_KEYS.CURRENT_MPG, currentMpg);
-        ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, Math.ceil((gallonsLeft/carSettings.tank_size)* 100));
+        ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, Math.ceil((persistantData.gallonsLeft/carSettings.tank_size)* 100));
         
         msSample = newMsSample;
         lastFuelSample = gpMs;
@@ -235,6 +240,8 @@ export default (carSettings) => {
     latestPacket: () => {
       return ecuDataStore.buffer;
     },
+
+    persistantData: persistantData,
 
     /**
     * @param {{ ts: number; id: number; data: Uint8Array; ext: boolean; } | false} msg 
