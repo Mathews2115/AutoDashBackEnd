@@ -162,9 +162,6 @@ export default (carSettings) => {
         msSample = newMsSample;
         lastFuelSample = gpMs;
         break;
-      case DATA_KEYS.ODOMETER:
-        ecuDataStore.write(DATA_KEYS.ODOMETER, data + carSettings.odometer);
-        break;
       case DATA_KEYS.CTS:
         ecuDataStore.updateWarning(WARNING_KEYS.ENGINE_TEMPERATURE, (data > carSettings.engine_temp_high));
         break;
