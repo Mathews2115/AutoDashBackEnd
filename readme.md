@@ -26,6 +26,13 @@ This is the compnent that gets installed on the raspberry Pi. It will run a Node
 * `yarn install`
 * lol- lazy and need to this to use uWebSockets on ARM...
   *  `scp -r ../AutoDashBackEnd/uws_linux_arm_88.node pi@raspberrypi.local:/home/pi/AutoDashBackEnd/node_modules/uWebSockets.js/ `
+*  for our GPIO interactivity - https://github.com/fivdi/pigpio
+```
+pigpiod -v
+sudo apt-get update
+sudo apt-get install pigpio
+```
+  
 
 ## After you install packages on the pi
 1. Copy the lock file back to our project and commit that shit in
@@ -99,4 +106,6 @@ Monitor data is continuously broadcast by the HEFI.
 ```
 ~ cd development/AutoDashBackEnd                                       
 ➜  AutoDashBackEnd git:(main) ✗ canplayer vcan0=can0  -I ./can_dumps/candump-racepack-running.log -li
+
+scp pi@raspberrypi.local:/home/AutoDashBackEnd/yarn.lock ../AutoDashBackEnd/yarn.lock
 ```

@@ -72,7 +72,8 @@ class GPSManager {
         return [{ id: WARNING_KEYS.GPS_NOT_ACQUIRED, data: !data.data.flags.gpsFixOk}]
   
       case 'NAV-VELNED':
-        return [{ id: DATA_KEYS.GPS_SPEEED, data: (Math.min(255, Math.floor(data.data.gSpeed*0.022369)), 0)}] // cm/s to mph;\
+        return [{ id: DATA_KEYS.GPS_SPEEED, data: 25 }]
+        // return [{ id: DATA_KEYS.GPS_SPEEED, data: (Math.min(255, Math.floor(data.data.gSpeed*0.022369)), 0)}] // cm/s to mph;\
         //  {id: DATA_KEYS.HEADING, data:  data.data.heading}]
  
       case 'NAV-ODO':
