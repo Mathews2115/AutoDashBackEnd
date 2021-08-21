@@ -1,4 +1,4 @@
-# Raspberry Pi (4) Dash Server
+# Raspberry Pi (4) Digital Dash Server
 # This is the backend of the Racepak/Holley Auto Digital Dash. This pairs with the AutoDashFrontEnd
 **WARNING - BUILDING THIS WHILE WE ARE FLYING - EXPECT MASSIVE STUPID CHANGES ON A WHIM**
 
