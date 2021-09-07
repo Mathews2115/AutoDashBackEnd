@@ -30,7 +30,7 @@ export default (carSettings) => {
     lastMpgSampleTime = performance.now();
 
     // TEST CODE
-    ecuDataStore.write(DATA_KEYS.GPS_SPEEED, 25);
+    ecuDataStore.write(DATA_KEYS.GPS_SPEEED, 69);
   };
 
   const updateValue = ({ id, data }) => {

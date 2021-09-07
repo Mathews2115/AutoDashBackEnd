@@ -109,7 +109,6 @@ iface can0 inet manual
 #### Setup chromium and all the needed flags for hardware accelerated kiosk mode
 1. `sudo nano /etc/xdg/openbox/autostart`
 * Note:  Waveshare settings; uncomment that line (turning on the accelerated video driver will cause it to ignore the display-rotate - so we need to use xrander to rotate it in xserver)
-* `YOUR_WEB_SERVER_URL_HERE` - This is where your web server that serves that front dash stuff will reside (we will update this later)
 ```
 # Disable any form of screen saver / screen blanking / power management
 xset s off
@@ -127,7 +126,7 @@ sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' ~/.config/chromium/'Loc
 sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]\+"/"exit_type":"Normal"/' ~/.config/chromium/Default/Preferences
 
 chromium-browser --noerrdialogs --ignore-gpu-blocklist --enable-accelerated-video-decode --enable-gpu-rasterization --disable-infobars --disable-full-history-sync \
---kiosk YOUR_WEB_SERVER_URL_HERE \
+--kiosk http:\\localhost:3000 \
 --enable-vulkan \
 --enable-zero-copy
 ```
@@ -245,6 +244,7 @@ Monitor data is continuously broadcast by the HEFI.
 
 
 # Personal Notes:
+* making quick src updates: `scp -r ../AutoDashBackEnd/src pi@pi.local:/home/pi/AutoDashBackEnd/src` 
 ```
 ~ cd development/AutoDashBackEnd                                       
 ➜  AutoDashBackEnd git:(main) ✗ canplayer vcan0=can0  -I ./can_dumps/candump-racepack-running.log -li

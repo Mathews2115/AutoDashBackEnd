@@ -3,6 +3,7 @@ import CanbusManager from './CAN/canbusManager.js'
 import GPSManager from './GPS/gpsManager.js'
 import ecuManager from './ecuManager.js'
 import { appSettingsManager } from './appSettingsManager.js'
+import DashContentWebServer from './webserver.js'
 
 const UPDATE_MS = 33; //frequency  sent up to the dash  30fps (about 60hz)
 
@@ -16,6 +17,7 @@ export default function (canChannel, settings) {
   const gps = new GPSManager(settings.gps);
   const ecu = ecuManager(settings.ecu);
   const appSettings = appSettingsManager(settings);
+  const webserver = new DashContentWebServer('dist', 'index.html');
   let updateInterval = null;
   let savingUpdateInterval = null;
 
@@ -26,6 +28,7 @@ export default function (canChannel, settings) {
       dashComms.start();
       canComms.start(ecu.updateFromCanBus);
       gps.start(ecu.updateFromGPS);
+      webserver.start();
       
       // Frontend update 
       updateInterval = setInterval(() => {
