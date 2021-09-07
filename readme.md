@@ -163,19 +163,33 @@ max_framebuffers=2
 2. `sudo apt install git`
 2. From your Local Computer, copy the Dash BackEnd software over. (sans the node_modules)
   * example: `scp -r ../AutoDashBackEnd pi@pi.local:/home/pi`
-3. lazy and need to this to use uWebSockets on ARM...(there is probably a better way but for now, just manually copy it)
-   1. `mkdir ./AutoDashBackEnd/node_modules`
-   2. `mkdir ./AutoDashBackEnd/node_modules/uWebSockets.js/`
-   3. `cp ./AutoDashBackEnd/uws_linux_arm_88.node ./AutoDashBackEnd/node_modules/uWebSockets.js/uws_linux_arm_88.node`
 4. for our GPIO interactivity - we are installing this - https://github.com/fivdi/pigpio:
    1. `sudo apt-get update`
    2. `sudo apt-get install pigpio`
 5. (you already installed the CANUtil libraries from above...if not, go ahead and do that now)
 
+## Install NEWEST version of nodejs
+1. https://www.officialrajdeepsingh.dev/install-node-js-and-npm-latest-version-on-raspberry-pi-4/
+2. That link isnt perfect but it involves downloading the nodejs compressed file for the armv7l architecture - here is what I did:
+```
+tar -xf node-v14.17.6-linux-armv7l.tar.xz
+rm node-v14.17.6-linux-armv7l.tar.xz
+cd node-v14.17.6-linux-armv7l/
+sudo cp -R * /usr/local/
+sudo reboot
+node -v
+```
+3. Confirm your Node version is at least 14 or above
+
 ## Yarn Install
 1. `cd AutoDashBackEnd/`
 2. `rm yarn.lock` - if I checked it in; we always want to build fresh
 3. `yarn`
+
+## Build uWebSocket.js for Raspberry Pi
+We will need to this to use uWebSockets on ARM...we have to build it on the pi
+   1. https://github.com/jmscreation/RBPI.uWebSockets.js
+   2. run the build script and copy the binary to our node module `cp ./dist/uws_linux_arm_83.node ../AutoDashBackEnd/node_modules/uWebSockets.js/`
 
 ## Setup Can/Vcan Auto interface
 1. Dont forget to make your shell scripts executable `sudo chmod u+rw RPI_system/start_vcan.sh`
