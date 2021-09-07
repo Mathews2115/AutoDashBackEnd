@@ -249,5 +249,4 @@ Monitor data is continuously broadcast by the HEFI.
 ~ cd development/AutoDashBackEnd                                       
 ➜  AutoDashBackEnd git:(main) ✗ canplayer vcan0=can0  -I ./can_dumps/candump-racepack-running.log -li
 
-scp pi@raspberrypi.local:/home/AutoDashBackEnd/yarn.lock ../AutoDashBackEnd/yarn.lock
 ```
