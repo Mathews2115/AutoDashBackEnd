@@ -13,6 +13,7 @@ This is the compnent that gets installed on the raspberry Pi. It will run a Node
 * [waveshare 7.9 monitor](https://www.waveshare.com/wiki/7.9inch_HDMI_LCD)
 * 3.0+ USB flash drive (optional)
 * [Waveshare dual CAN hat](https://www.waveshare.com/wiki/2-CH_CAN_HAT) 
+* [Geekworm x715 Power/Fan](https://wiki.geekworm.com/X715_Software)
 
 ## Update PI EEPROM for new Bootloader
 if you dont care about booting from USB, just skip to Setting up Image.
@@ -97,6 +98,19 @@ iface can0 inet manual
    down /sbin/ifconfig can0 down
 ```
 7. `sudo reboot`
+
+### Setup Geekworm x715 FAN script
+```
+#fan control code need pigpiod library, so we need to install it firstly.
+sudo apt-get install -y pigpio python-pigpio python3-pigpio
+sudo systemctl enable pigpiod
+git clone https://github.com/geekworm-com/x715
+sudo reboot
+cd ~
+python /home/pi/x715/pwm_fan_control.py&
+```
+* Follow the rest of the crontab instructions for auto fan start
+* https://wiki.geekworm.com/X715_Software
 
 ### Install Chromium in Kiosk Mode
 
