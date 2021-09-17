@@ -3,7 +3,7 @@
 **WARNING - BUILDING THIS WHILE WE ARE FLYING - EXPECT MASSIVE STUPID CHANGES ON A WHIM**
 
 This is the compnent that gets installed on the raspberry Pi. It will run a Node server that will
-1. Will host the AutoDashFrontEnd's dist files from `public/dist`. as some point
+1. Will host the AutoDashFrontEnd's dist files from `dist`. as some point
 2. listen and parse CAN messages from the CAN hat
 3. Communicate with the dash via a websocket
 
