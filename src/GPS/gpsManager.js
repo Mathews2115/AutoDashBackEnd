@@ -80,6 +80,12 @@ class GPSManager {
         return [{ id: DATA_KEYS.ODOMETER, data: Math.floor(data.data.totalDistance*0.000621371)},
          { id: DATA_KEYS.TRIP_ODOMETER, data: Math.floor(data.data.distance*0.000621371)}]
   
+      case 'HNR-PVT':
+          return [
+            { id: WARNING_KEYS.GPS_NOT_ACQUIRED, data: !data.data.flags.gpsFixOk },
+            { id: DATA_KEYS.GPS_SPEEED, data: 25 },
+            //{ id: DATA_KEYS.GPS_SPEEED, data: (Math.min(255, Math.floor(data.data.gSpeed*0.00223693629)), 0)}] // mm/s to mph;
+          ] 
       default:
         return [];
     }

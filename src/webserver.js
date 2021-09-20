@@ -46,6 +46,8 @@ class DashContentWebServer {
 
   // stop and cleanup
   stop() {
+    this.server.removeAllListeners();
+    this.server = null;
   }
 }
 

@@ -2,6 +2,7 @@
 //https://github.com/ayavilevich/ubx-packet-parser
 import Debug from 'debug'
 import stream from 'stream';
+import { decodeGPSFix } from './ubxHelper.js';
 
 
 const gnssIdentifiersInversed = {
@@ -389,48 +390,7 @@ function itowDiff(itowStart, itowEnd) {
 
 
 function status(packet) {
-  const gpsFixRaw = {
-    value: packet.payload.readUInt8(4),
-    string: ''
-  };
-  let gpsFix = '';
-
-  switch (gpsFixRaw.value) {
-    case 0x00:
-      gpsFixRaw.string = 'no fix';
-      gpsFix = 'no-fix';
-      break;
-
-    case 0x01:
-      gpsFixRaw.string = 'dead reckoning only';
-      gpsFix = 'dead-reckoning';
-      break;
-
-    case 0x02:
-      gpsFixRaw.string = '2D-fix';
-      gpsFix = '2d-fix';
-      break;
-
-    case 0x03:
-      gpsFixRaw.string = '3D-fix';
-      gpsFix = '3d-fix';
-      break;
-
-    case 0x04:
-      gpsFixRaw.string = 'GPS + dead reckoning combined';
-      gpsFix = 'gps+dead-reckoning';
-      break;
-
-    case 0x05:
-      gpsFixRaw.string = 'Time only fix';
-      gpsFix = 'time-only';
-      break;
-
-    default:
-      gpsFixRaw.string = 'reserved';
-      gpsFix = 'reserved';
-      break;
-  }
+  const {gpsFixRaw, gpsFix} = decodeGPSFix();
 
   const flags = {
     gpsFixOk: bitToBool(packet.payload.readUInt8(5), 0),
@@ -586,6 +546,67 @@ function velned(packet) {
       distance: packet.payload.readUInt32LE(8),
       totalDistance: packet.payload.readInt32LE(12),
       distanceStd: packet.payload.readInt32LE(16),
+    }
+  };
+}
+
+/**
+ * UBX-HNR-PVT
+ * @param {protocolMessage} packet
+ * 
+ */
+
+function hnrPvt(packet) {
+  const {gpsFixRaw, gpsFix} = decodeGPSFix(packet.payload.readUInt8(16));
+
+  // GPSfixOK >1 = Fix within limits (e.g. DOP & accuracy)
+  // DiffSoln 1 = DGPS used
+  // WKNSET 1 = Valid GPS week number
+  // TOWSET 1 = Valid GPS time of week (iTOW & fTOW)
+  // headVehValid Heading of vehicle is valid
+  const flags = {
+    gpsFixOk: bitToBool(packet.payload.readUInt8(5), 0),
+    diffSoln: bitToBool(packet.payload.readUInt8(5), 1),
+    wknSet: bitToBool(packet.payload.readUInt8(5), 2),
+    towSet: bitToBool(packet.payload.readUInt8(5), 3),
+    headVehValid: bitToBool(packet.payload.readUInt8(5), 4)
+  }; 
+
+  // const valid = {
+  //   validDate: bitToBool(packet.payload.readUInt8(17), 0), // valid UTC Date
+  //   validTime: bitToBool(packet.payload.readUInt8(17), 1), // valid UTC Time of Day
+  //   fullyResolved: bitToBool(packet.payload.readUInt8(17), 2),  // UTC Time of Day has been fully resolved (no seconds uncertainty). Cannot be used to check if time is completely solved
+  // };
+
+  return {
+    type: 'HNR-PVT',
+    iTOW: packet.payload.readUInt32LE(4),
+    timeStamp: itowToDate(packet.payload.readUInt32LE(0)),
+    data: {
+      // turned these off for now; not needed
+      // year: packet.payload.readUInt16LE(4),  // Year (UTC) [y]
+      // month: packet.payload.readUInt8(6),    // Month, range 1..12 (UTC) [month]
+      // day: packet.payload.readUInt8(7),      // Day of month, range 1..31 (UTC) [day]
+      // hour: packet.payload.readUInt8(8),     // Hour of day, range 0..23 (UTC) [h]
+      // minute: packet.payload.readUInt8(9),   // Minute of hour, range 0..59 (UTC)
+      // second: packet.payload.readUInt8(10),  // Seconds of minute, range 0..60 (UTC) [s]
+      // valid, // Validity flags
+      //nano: packet.payload.readInt32LE(12),   // Fraction of second, range -1e9 .. 1e9 (UTC) [ns]
+      gpsFix,
+      gpsFixRaw,
+      flags,
+      // lon: packet.payload.readInt32LE(20) / 1e7,  // [deg]
+      // lat: packet.payload.readInt32LE(24) / 1e7,  // [deg]
+      // height: packet.payload.readInt32LE(28),     // Height above ellipsoid [mm]
+      // hMSL: packet.payload.readInt32LE(32),       // Height above mean sea level [mm]
+      gSpeed: packet.payload.readInt32LE(36),     // Ground Speed (2-D) [mm/s]
+      speed: packet.payload.readInt32LE(40),      // Speed (3-D
+      // headMot: packet.payload.readInt32LE(44) / 1e5, // Heading of motion (2-D) [deg]
+      // headVeh: packet.payload.readInt32LE(48) / 1e5, // Heading of vehicle (2-D) [deg]
+      // hAcc: packet.payload.readUInt32LE(52),       // Horizontal accuracy estimate [mm]
+      // vAcc: packet.payload.readUInt32LE(56),       // Vertical accuracy estimate [mm]
+      // sAcc: packet.payload.readUInt32LE(60),       // Speed accuracy estimate [mm/s]
+      // headAcc: packet.payload.readUInt32LE(64),    // Heading accuracy estimate [deg]
     }
   };
 }
@@ -1063,7 +1084,6 @@ function pvt(packet) {
     fullyResolved: bitToBool(packet.payload.readUInt8(11), 2),
     // UTC Time of Day has been fully resolved (no seconds uncertainty). Cannot be used to check if time is completely solved
     validMag: bitToBool(packet.payload.readUInt8(11), 3) // valid Magnetic declination
-
   };
   return {
     type: 'NAV-PVT',
@@ -1282,6 +1302,7 @@ var navFunctions = {
   sat,
   sig,
   pvt,
+  hnrPvt,
   hpposllh,
   relposned,
   eoe,
@@ -1400,17 +1421,21 @@ class UBXPacketParser extends stream.Transform {
           result = navFunctions.odo(chunk);
           break;
 
-      // case packetTypes['NAV-SAT']:
-      //   result = navFunctions.sat(chunk);
-      //   break;
+      case packetTypes['NAV-SAT']:
+        result = navFunctions.sat(chunk);
+        break;
 
-      // case packetTypes['NAV-SIG']:
-      //   result = navFunctions.sig(chunk);
-      //   break;
+      case packetTypes['NAV-SIG']:
+        result = navFunctions.sig(chunk);
+        break;
 
-      // case packetTypes['NAV-PVT']:
-      //   result = navFunctions.pvt(chunk);
-      //   break;
+      case packetTypes['NAV-PVT']:
+        result = navFunctions.pvt(chunk);
+        break;
+
+      case packetTypes['HNR-PVT']:
+        result = navFunctions.hnrPvt(chunk);
+        break;
       default:
         result = {}
         break;

@@ -14,6 +14,7 @@ This is the compnent that gets installed on the raspberry Pi. It will run a Node
 * 3.0+ USB flash drive (optional)
 * [Waveshare dual CAN hat](https://www.waveshare.com/wiki/2-CH_CAN_HAT) 
 * [Geekworm x715 Power/Fan](https://wiki.geekworm.com/X715_Software)
+* [SparkFun GPS - NEO-M8U](https://www.sparkfun.com/products/16329)
 
 ## Update PI EEPROM for new Bootloader
 if you dont care about booting from USB, just skip to Setting up Image.
