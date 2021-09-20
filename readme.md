@@ -253,6 +253,9 @@ Monitor data is continuously broadcast by the HEFI.
   * Each set of 4 bytes (with the exception of RTC) is in a signed “fixed 24.8” format (essentially fixed 24.8 = float *256) 
   * The RTC is sent as an u32 showing milliseconds since power on, or if the RTC was set will it will be the current time of 
 
+# GPS
+If you can, try to configure your GPS chip to only send the required messages.  In my instance, since I am using USB, I turned off all messages for other protocols (I2C, SPI, etc).   I also only enabled `NAV-ODO`, and  `HNR-PVT` messages.
+
 # Cheatsheets
 * log file of service
   * `journalctl `
