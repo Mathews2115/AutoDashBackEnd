@@ -14,6 +14,7 @@ This is the compnent that gets installed on the raspberry Pi. It will run a Node
 * 3.0+ USB flash drive (optional)
 * [Waveshare dual CAN hat](https://www.waveshare.com/wiki/2-CH_CAN_HAT) 
 * [Geekworm x715 Power/Fan](https://wiki.geekworm.com/X715_Software)
+* [Geekworm x728 UPS](https://wiki.geekworm.com/X728-Software)
 * [SparkFun GPS - NEO-M8U](https://www.sparkfun.com/products/16329)
 
 ## Update PI EEPROM for new Bootloader
@@ -100,18 +101,21 @@ iface can0 inet manual
 ```
 7. `sudo reboot`
 
-### Setup Geekworm x715 FAN script
+
+### Setup Geekworm x728 UPS script
+When the power is cut to the RPI, we want it to auto shutdown safely in about 30 seconds of sustained no power.
+
+1. make sure I2C is enabled (`sudo raspi-config`)
+2. Enable the ds1307 overlay: add ds1307 to the dtoverlay line ex. dtoverlay=vc4-fkms-v3d,ds1307 
+3. Do the following
 ```
-#fan control code need pigpiod library, so we need to install it firstly.
-sudo apt-get install -y pigpio python-pigpio python3-pigpio
-sudo systemctl enable pigpiod
-git clone https://github.com/geekworm-com/x715
-sudo reboot
 cd ~
-python /home/pi/x715/pwm_fan_control.py&
+git clone https://github.com/Mathews2115/x728-Monitor.git
+cd x728-Monitor
+chmod +x *.sh
+sudo ./setup.sh
+sudo reboot
 ```
-* Follow the rest of the crontab instructions for auto fan start
-* https://wiki.geekworm.com/X715_Software
 
 ### Install Chromium in Kiosk Mode
 
