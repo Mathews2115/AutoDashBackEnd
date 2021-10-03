@@ -72,7 +72,7 @@ class GPSManager {
         return [{ id: WARNING_KEYS.GPS_NOT_ACQUIRED, data: !data.data.flags.gpsFixOk}]
   
       case 'NAV-VELNED':
-        return [{ id: DATA_KEYS.GPS_SPEEED, data: 25 }]
+        return [{ id: DATA_KEYS.GPS_SPEEED, data: 69 }]
         // return [{ id: DATA_KEYS.GPS_SPEEED, data: (Math.min(255, Math.floor(data.data.gSpeed*0.022369)), 0)}] // cm/s to mph;\
         //  {id: DATA_KEYS.HEADING, data:  data.data.heading}]
  
@@ -83,7 +83,7 @@ class GPSManager {
       case 'HNR-PVT':
           return [
             { id: WARNING_KEYS.GPS_NOT_ACQUIRED, data: !data.data.flags.gpsFixOk },
-            { id: DATA_KEYS.GPS_SPEEED, data: 25 },
+            { id: DATA_KEYS.GPS_SPEEED, data: 69 },
             //{ id: DATA_KEYS.GPS_SPEEED, data: (Math.min(255, Math.floor(data.data.gSpeed*0.00223693629)), 0)}] // mm/s to mph;
           ] 
       default:

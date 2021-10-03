@@ -9,6 +9,7 @@ import can from 'socketcan'
 /**
  * Strictly handles the communication with CANBUS
  */
+let timeout = null;
 class CanbusManager {
   /**
    * Listens to can messges
@@ -16,14 +17,8 @@ class CanbusManager {
    */
   constructor(channel) {
     this.started = false;
-    this.onUpdateCallback = () => {}
-    try {
-      this.channel = can.createRawChannel(channel, true);
-    } catch (error) {
-      console.error('ERROR: Cannot create can channel - did you raise the interface?')
-      console.error(error);
-      throw error;
-    }
+    this.channelName = channel;
+    
   }
 
   /**
@@ -36,23 +31,45 @@ class CanbusManager {
    * @param {Function} [onUpdateCallback]
    */
   start(onUpdateCallback) {
+    this.onUpdateCallback = onUpdateCallback;
+
     try {
-      this.channel.start();
-      this.channel.addListener('onMessage', (msg) => {
-        onUpdateCallback(msg);
-      });
-      this.started = true;
+      this.channel = can.createRawChannel(this.channelName, true);
+    } catch (error) {
+      console.error('ERROR: Cannot create can channel - did you raise the interface?')
+      console.error(error);
+    }
+
+    try {
+      if (this.channel) {
+        this.resetTimeout();
+        this.channel.start();
+        this.channel.addListener('onMessage', (msg) => {
+          this.resetTimeout();
+          this.onUpdateCallback(msg);
+        });
+        this.started = true;
+      }
     } catch (error) {
       console.error('ERROR: SocketServer: ', error);
       this.stop();
-      onUpdateCallback(false);
     }
     return this.started;
   }
 
   stop() {
+    clearTimeout(timeout);
+    this.onUpdateCallback(false);
     this.started = false;
-    this.channel.stop();
+    if(this.channel) this.channel.stop();
+    this.channel = null;
+  }
+
+  resetTimeout() {
+    if (this.onUpdateCallback) {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => { this.onUpdateCallback(false) }, 3000);
+    }
   }
 }
 

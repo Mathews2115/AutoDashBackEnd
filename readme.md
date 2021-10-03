@@ -267,6 +267,8 @@ If you can, try to configure your GPS chip to only send the required messages.  
 
 # Personal Notes:
 * making quick src updates: `scp -r ../AutoDashBackEnd/src pi@pi.local:/home/pi/AutoDashBackEnd/src` 
+* copy dist 
+  *  `scp -r ../AutoDashFrontEnd/dist pi@pi.local:/home/pi/AutoDashBackEnd/dist/ `
 ```
 ~ cd development/AutoDashBackEnd                                       
 ➜  AutoDashBackEnd git:(main) ✗ canplayer vcan0=can0  -I ./can_dumps/candump-racepack-running.log -li

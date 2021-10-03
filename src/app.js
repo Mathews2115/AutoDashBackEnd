@@ -39,8 +39,6 @@ export default function (canChannel, settings) {
       savingUpdateInterval = setInterval(() => {
         appSettings.saveSettings(ecu.persistantData);
       }, 1000);
-
-
     } catch (error) {
       onError(error);
     }
