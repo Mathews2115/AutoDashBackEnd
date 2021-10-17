@@ -35,12 +35,6 @@ class CanbusManager {
 
     try {
       this.channel = can.createRawChannel(this.channelName, true);
-    } catch (error) {
-      console.error('ERROR: Cannot create can channel - did you raise the interface?')
-      console.error(error);
-    }
-
-    try {
       if (this.channel) {
         this.resetTimeout();
         this.channel.start();
@@ -49,10 +43,12 @@ class CanbusManager {
           this.onUpdateCallback(msg);
         });
         this.started = true;
+      } else {
+        throw new Error('Cannot create channel - Did you properly raise the interface?');
       }
     } catch (error) {
-      console.error('ERROR: SocketServer: ', error);
       this.stop();
+      console.error("CAN INTERFACE ERROR: ", error);
     }
     return this.started;
   }

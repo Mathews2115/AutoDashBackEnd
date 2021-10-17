@@ -264,7 +264,6 @@ If you can, try to configure your GPS chip to only send the required messages.  
 * log file of service
   * `journalctl `
 
-
 # Personal Notes:
 * making quick src updates: `scp -r ../AutoDashBackEnd/src pi@pi.local:/home/pi/AutoDashBackEnd/src` 
 * copy dist 

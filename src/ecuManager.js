@@ -14,7 +14,7 @@ export default (carSettings) => {
   let lastFuelSample = 0; // Last Gal / Millisecond sample
   const ecuDataStore = new DataStore(); // just assign a big ass buffer
   const mpgSampler = new RingBuffer(Buffer.alloc(1024));
-  const fuelLevelReset = new FuelLevelResetButton(() => ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 100));
+  // const fuelLevelReset = new FuelLevelResetButton(() => ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 100));
 
   const persistantData = {
     gallonsLeft: 0,
@@ -83,12 +83,13 @@ export default (carSettings) => {
         );
         break;
       case DATA_KEYS.OIL_PRESSURE:
-        // not connected yets
-        // ecuDataStore.updateWarning(WARNING_KEYS.OIL_PRESSURE, (data < carSettings.oil_low_limit));
+        ecuDataStore.updateWarning(WARNING_KEYS.OIL_PRESSURE, (data < carSettings.oil_low_limit));
         break;
       case DATA_KEYS.BATT_VOLTAGE:
         ecuDataStore.updateWarning(WARNING_KEYS.BATT_VOLTAGE, data < carSettings.voltage_low_limit);
         break;
+      case DATA_KEYS.ODOMETER:
+        data = data + carSettings.odometer;
       default:
         break;
     }
