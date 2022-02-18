@@ -23,31 +23,37 @@ This is the compnent that gets installed on the raspberry Pi. It will run a Node
 ## Update PI EEPROM for new Bootloader
 if you dont care about booting from USB, just skip to Setting up Image.
 1. Download RPI's official [Imager](https://www.raspberrypi.org/software/)
-2. Image SD card with a rasp lite image
-3. Edit the `/boot/config.txt`
-4. add monitor support so we can enable wifi and SSH
-
-```
-# waveshare 7.9 screen - https://www.waveshare.com/wiki/7.9inch_HDMI_LCD
-max_usb_current=1
-hdmi_group=2
-hdmi_mode=87
-hdmi_timings=400 0 100 10 140 1280 10 20 20 2 0 0 0 60 0 43000000 3
-```
-5. Boot Pi with new card
-6. login with `pi` `raspberry`
-7. Enable wifie and SSH, reboot
-8. SSH in and lets have some fun
-9. (update bootloader stuff: watch this https://www.youtube.com/watch?v=8tTFgrOCsig)
+2. Follow the steps for setting up your initial pi image from Setup Pi Image below
+3. SSH in and lets have some fun
+4.  (update bootloader stuff: watch this https://www.youtube.com/watch?v=8tTFgrOCsig)
 
 
 ## Setup Pi Image
 1. Download RPI's official [Imager](https://www.raspberrypi.org/software/)
 2. Image USB (or SD if you dont want usb) card with a rasp lite image
-3. Edit the `/boot/config.txt`
-4. add monitor support so we can enable wifi and SSH
-5. comment out: `# dtparam=audio=off`
-6. add:
+### Setup Headless
+3. We are going to add SSH/Wifi so we can just ssh straight into it without needing a monitor (if desired) 
+   1. Go into volume Boot of the card:
+   2. [enable SSH](https://desertbot.io/blog/headless-raspberry-pi-4-ssh-wifi-setup):
+      1. `sudo touch ssh`
+   3. WiFi network 
+      1. `sudo touch wpa_supplicant.conf`
+      2. add the contents to that file:
+```
+country=US
+ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=netdev
+update_config=1
+
+network={
+    ssid="NETWORK-NAME"
+    psk="NETWORK-PASSWORD"
+}
+
+```
+
+### 7.9 Inch Monitor Support:
+4. Edit the `/boot/config.txt`
+5. add 
 ```
 # waveshare 7.9 screen - https://www.waveshare.com/wiki/7.9inch_HDMI_LCD
 max_usb_current=1
@@ -55,29 +61,16 @@ hdmi_group=2
 hdmi_mode=87
 hdmi_timings=400 0 100 10 140 1280 10 20 20 2 0 0 0 60 0 43000000 3
 ```
+### Boot up
+6. Pop the USB/SD in the pi and boot up
+7. login pi/raspberry
+8. (note: at some point set auto login to true, I still dont know how to do that without going to raspi-config) 
+9. ssh from your computer:
+   * `ssh-keygen -R raspberrypi.local`
+   * `ssh pi@raspberrypi.local` 
+   * (default password is raspberry)
+10. Update everything: `sudo apt-get -y update && sudo apt-get -y upgrade ; sudo apt-get autoremove ; sudo apt-get dist-upgrade -y ; sudo reboot`
 
-7. Pop the USB/SD in the pi and boot up
-8. login pi/raspberry
-9. get wifi up and running and ssh if you havent yet
-10. now we can SSH remotely
-11. Update everything: `sudo apt-get -y update && sudo apt-get -y upgrade ; sudo apt-get autoremove ; sudo apt-get dist-upgrade -y ; sudo reboot`
-
-### Disable Bluetooth
-https://di-marco.net/blog/it/2020-04-18-tips-disabling_bluetooth_on_raspberry_pi/#add-below-save-and-close-the-file
-1. `sudo nano /boot/config.txt`
-2. add 
-```
-# Disable Bluetooth
-dtoverlay=disable-bt
-# Disable Wifi (disable this when the dash is ready to go in; eliminate time waiting for Wifi to raise)
-# dtoverlay=disable-wifi
-```
-3. and then run
-```
-sudo systemctl disable hciuart.service
-sudo systemctl disable bluealsa.service
-sudo systemctl disable bluetooth.service
-```
 
 ### Setup WaveShare Dual CAN hat
 https://www.waveshare.com/wiki/2-CH_CAN_HAT
@@ -88,7 +81,7 @@ https://www.waveshare.com/wiki/2-CH_CAN_HAT
 dtoverlay=mcp2515-can1,oscillator=16000000,interrupt=25
 dtoverlay=mcp2515-can0,oscillator=16000000,interrupt=23
 ```
-4. install can util stuff
+4. install can util stuff ( do i need dev?)
 ```
 sudo apt-get -y install can-utils libsocketcan2 libsocketcan-dev
 ```
@@ -113,6 +106,7 @@ When the power is cut to the RPI, we want it to auto shutdown safely in about 30
 3. Do the following
 ```
 cd ~
+sudo apt install git
 git clone https://github.com/Mathews2115/x728-Monitor.git
 cd x728-Monitor
 chmod +x *.sh
@@ -156,11 +150,13 @@ chromium-browser --noerrdialogs --ignore-gpu-blocklist --enable-accelerated-vide
 #### AutoStart Chromium 
 Add this when/if you want chromium to start upon boot
 1. `sudo nano /home/pi/.bash_profile`
-2. Add this: `[[ -z $DISPLAY && $XDG_VTNR -eq 1 ]] && startx -- -nocursor`
+2. Add this: 
+   1. `[[ -z $DISPLAY && $XDG_VTNR -eq 1 ]] && startx -- -nocursor`
 
 ### LETS MAKE CHROME RUN FASTER PLZ
 We need the pi4 gl driver, so lets download it and use it
-1. Install drivers: `sudo apt-get install libgles2-mesa
+1. Install drivers: 
+   1. `sudo apt-get install libgles2-mesa`
 2. make sure ethis is in your `sudo nano /boot/config.txt`
 ```
 [pi4]
@@ -170,9 +166,6 @@ max_framebuffers=2
 ```
 3. Reboot 
 
-### Disable other devices
-* disable touch screen
-
 # Setup Dash firmware
 ## Prereqs to build AutoDasahBackEnd
 1. install yarn 
@@ -181,26 +174,23 @@ max_framebuffers=2
      echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
      sudo apt-get update && sudo apt-get install yarn
   ```
-2. `sudo apt install git`
 2. From your Local Computer, copy the Dash BackEnd software over. (sans the node_modules)
-  * example: `scp -r ../AutoDashBackEnd pi@pi.local:/home/pi`
-4. for our GPIO interactivity - we are installing this - https://github.com/fivdi/pigpio:
-   1. `sudo apt-get update`
-   2. `sudo apt-get install pigpio`
-5. (you already installed the CANUtil libraries from above...if not, go ahead and do that now)
+3. (you already installed the CANUtil libraries from above...if not, go ahead and do that now)
 
-## Install NEWEST version of nodejs
+## Install Node v14 version of nodejs
 1. https://www.officialrajdeepsingh.dev/install-node-js-and-npm-latest-version-on-raspberry-pi-4/
 2. That link isnt perfect but it involves downloading the nodejs compressed file for the armv7l architecture - here is what I did:
+3. Node 14:
 ```
-tar -xf node-v14.17.6-linux-armv7l.tar.xz
-rm node-v14.17.6-linux-armv7l.tar.xz
-cd node-v14.17.6-linux-armv7l/
+wget https://nodejs.org/dist/v14.19.0/node-v14.19.0-linux-armv7l.tar.xz
+tar -xf node-v14.19.0-linux-armv7l.tar.xz
+rm node-v14.19.0-linux-armv7l.tar.xz
+cd node-v14.19.0-linux-armv7l/
 sudo cp -R * /usr/local/
 sudo reboot
 node -v
 ```
-3. Confirm your Node version is at least 14 or above
+1. Confirm your Node version is 14
 
 ## Yarn Install
 1. `cd AutoDashBackEnd/`
@@ -212,15 +202,6 @@ We will need to this to use uWebSockets on ARM...we have to build it on the pi
    1. https://github.com/jmscreation/RBPI.uWebSockets.js
    2. run the build script and copy the binary to our node module `cp ./dist/uws_linux_arm_83.node ../AutoDashBackEnd/node_modules/uWebSockets.js/`
 
-## Setup Can/Vcan Auto interface
-1. Dont forget to make your shell scripts executable `sudo chmod u+rw RPI_system/start_vcan.sh`
-2. For Development mode: `RPI_system/start_vcan.sh`
-3. 
-### Simulate CAN in dev on your Mac / Linux
-1. Start the virtual CAN interface: `.RPI_system/start_vcan.sh`
-2. Start playing CAN messages from a captured can log: `canplayer vcan0=can0  -I ./can_dumps/candump-racepack-running.log -li`
-3. Run the server: `npm run test_server`
-
 ## Simulate CAN in dev on the Pi
 1. Start Dev CAN service `RPI_system/prepare_dev.sh`
    1. see that file to configure what canfile to run
@@ -229,11 +210,58 @@ We will need to this to use uWebSockets on ARM...we have to build it on the pi
 3. ssh in and play a canfile
    1. `canplayer vcan0=can0  -I ./can_dumps/candump-racepack-running.log -li`
 
+## Setup Can/Vcan Auto interface
+1. Dont forget to make your shell scripts executable `sudo chmod u+rw RPI_system/start_vcan.sh`
+2. For Development mode: `RPI_system/start_vcan.sh`
+   
+### Simulate CAN in dev on your Mac / Linux
+1. Start the virtual CAN interface: `.RPI_system/start_vcan.sh`
+2. Start playing CAN messages from a captured can log: `canplayer vcan0=can0  -I ./can_dumps/candump-racepack-running.log -li`
+3. Run the server: `npm run test_server`
+
 
 ## Helpful links
 * [can util stuff](https://www.hackers-arise.com/post/2017/08/08/automobile-hacking-part-2-the-can-utils-or-socketcan)
 * [NodeCan](https://github.com/sebi2k1/node-can)
 * [uWebSockets](https://unetworking.github.io/uWebSockets.js/generated/interfaces/templatedapp.html#ws)
+* https://desertbot.io/blog/headless-raspberry-pi-4-ssh-wifi-setup
+* 
+
+# Speed up Boot times
+## overclock?
+1. You'll need active cooling on the pi if you do this, otherwise it will throttle itself down as it turns into metal goo
+2. `sudo nano /boot/config.txt`
+3. add:
+```
+over_voltage=6
+arm_freq=2147
+gpu_freq=750
+```
+## disable services
+* `sudo systemctl disable raspi-config.service`
+* `sudo systemctl disable apt-daily-upgrade.service`
+* `sudo systemctl disable rpi-eeprom-update.service`
+* `sudo systemctl disable keyboard-setup.service`
+* `sudo systemctl disable hciuart.service` 
+* `sudo systemctl disable bluealsa.service`
+* `sudo systemctl disable bluetooth.service`
+* disable wifi/touch?
+
+### disabling bluetooth
+* https://di-marco.net/blog/it/2020-04-18-tips-disabling_bluetooth_on_raspberry_pi/
+
+## Also remove overlays for disabled stuff
+1. `sudo nano /boot/config.txt`
+2. add 
+```
+#Disable Bluetooth 
+dtoverlay=disable-bt
+#dtparam=audio=on
+# Disable Wifi (disable this when the dash is ready to go in; eliminate time waiting for Wifi to raise)
+dtoverlay=disable-wifi
+disable_touchscreen=1
+```   
+
 
 # CAN Protocol
 ## Holley / NHRA
@@ -266,6 +294,16 @@ If you can, try to configure your GPS chip to only send the required messages.  
 # Cheatsheets
 * log file of service
   * `journalctl `
+Logs:
+* `dmesg`
+* `systemd-analyze`
+* `systemd-analyze critical-chain`
+*  `lsmod` - list of loaded modules
+
+Monitoring
+* Monitor CPU Clock Speed - `watch -n1 vcgencmd measure_clock arm`
+* Measure Temperature -     `watch -n1 vcgencmd measure_temp`
+
 
 # Personal Notes:
 * making quick src updates: `scp -r ../AutoDashBackEnd/src pi@pi.local:/home/pi/AutoDashBackEnd/src` 

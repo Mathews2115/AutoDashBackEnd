@@ -161,6 +161,7 @@ export default (carSettings) => {
         // canparsing failure, shutdown
         ecuDataStore.updateWarning(WARNING_KEYS.ECU_COMM, true);
       } else {
+        ecuDataStore.updateWarning(WARNING_KEYS.ECU_COMM, false)
         decoder.do(msg).forEach((newData) => updateValue(newData));
       }
     },

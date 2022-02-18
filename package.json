@@ -1,7 +1,7 @@
 {
   "name": "auto-dash-back-end",
   "description": "RPI4 CAN interface with web socket server and web server",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "scripts": {
     "init_and_start_vcan_server": "./RPI_system/start_vcan.sh && npm run test_server",
@@ -12,12 +12,11 @@
   "author": "Michael J Mathews II",
   "dependencies": {
     "debug": "^4.3.1",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "js-yaml": "^4.1.0",
-    "pigpio": "^3.3.1",
-    "serialport": "^9.1.0",
+    "serialport": "^10.3.0",
     "socketcan": "^3.0.0",
-    "uWebSockets.js": "github:uNetworking/uWebSockets.js#v19.3.0"
+    "uWebSockets.js": "uNetworking/uWebSockets.js#v20.3.0"
   },
   "devDependencies": {
     "eslint": "^7.32.0",

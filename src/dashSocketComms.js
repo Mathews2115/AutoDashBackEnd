@@ -1,52 +1,61 @@
-//https://github.com/uNetworking/uWebSockets.js 
-import uWS from 'uWebSockets.js'
+// https://github.com/uNetworking/uWebSockets.js
+import uWS from 'uWebSockets.js';
 
 class DashSocketComms {
-  constructor (url, port) {
+  constructor(url, port) {
     this.listenSocket = null;
     this.url = url;
     this.port = port;
     this.started = false;
+    this.sockets = []
 
     this.open = (ws) => {
+      this.sockets.push(ws);
       console.log('A WebSocket connected!');
-      ws.subscribe('#'); //just subscribe to everything for now; ill boost this up at some point
-    }
+      ws.subscribe('#'); // just subscribe to everything for now; ill boost this up at some point
+    };
     this.message = (ws, message, isBinary) => {
       console.log('WebSocket message received from dash', message);
       /* Ok is false if backpressure was built up, wait for drain */
       // let ok = ws.send(message, isBinary);
-    } 
+    };
     this.drain = (ws) => {
-      console.log('WebSocket backpressure: ' + ws.getBufferedAmount());
-    }
+      console.log(`WebSocket backpressure: ${ws.getBufferedAmount()}`);
+    };
     this.close = (ws, code, message) => {
-      console.log('WebSocket closed');
-    }
+      const i = this.sockets.findIndex(s => s === ws);
+      if (i >= 0) {
+        this.sockets.splice(i, 1);
+      }
+      console.log('A WebSocket disconnected!');
+    };
 
     this.uWSApp = uWS.App({}).ws('/*', {
       compression: uWS.DISABLED,
       // maxPayloadLength: 16 * 1024 * 1024,
-      idleTimeout: 10,
+      idleTimeout: 8,
       /* Handlers */
       open: this.open,
       message: this.message,
       drain: this.drain,
       close: this.close,
-    })
+    });
   }
 
   /**
    * @param {Buffer} packet - array of 32Unit ID | 16UInt length of data | data...
    */
   dashUpdate(packet) {
-    this.uWSApp.publish("data_update",
-    new Uint8Array(packet.buffer, packet.byteOffset, packet.length), 
-     true);
+    this.sockets.forEach(ws => { ws.send(new Uint8Array(packet.buffer, packet.byteOffset, packet.length), true) });
+    // this.uWSApp.publish(
+    //   'data_update',
+    //   new Uint8Array(packet.buffer, packet.byteOffset, packet.length),
+    //   true,
+    // );
   }
 
   notifyError() {
-    this.uWSApp.publish("error", "onno");
+    this.uWSApp.publish('error', 'onno');
   }
 
   start() {
@@ -54,15 +63,16 @@ class DashSocketComms {
     this.uWSApp.listen(this.port, (token) => {
       if (token) {
         this.listenSocket = token;
-        console.log('Listening to port ' + this.port);
+        console.log(`Listening to port ${this.port}`);
       } else {
-        console.log('Failed to listen to port ' + this.port);
+        console.log(`Failed to listen to port ${this.port}`);
       }
-    })
+    });
   }
+
   stop() {
     this.started = false;
-    if(this.listenSocket) {
+    if (this.listenSocket) {
       uWS.us_listen_socket_close(this.listenSocket);
       this.listenSocket = null;
     }
