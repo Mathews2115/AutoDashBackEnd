@@ -194,8 +194,9 @@ node -v
 
 ## Yarn Install
 1. `cd AutoDashBackEnd/`
-2. `rm yarn.lock` - if I checked it in; we always want to build fresh
-3. `yarn`
+2. `rm yarn.lock`
+3. `cp yarn.lock.rpi yarn.lock`
+4. `yarn`
 
 ## Build uWebSocket.js for Raspberry Pi
 We will need to this to use uWebSockets on ARM...we have to build it on the pi

@@ -1,9 +1,9 @@
-import SerialPort from 'serialport';
+import { SerialPort } from 'serialport'
 import UBXProtocolParser from './ubx/UbxProtocolParser.js';
 import UBXPacketParser from './ubx/UbxPacketParser.js';
 import { DATA_KEYS, WARNING_KEYS } from '../dataKeys.js';
 
-class GPSManager {
+class GPSManager {  
   constructor(settings) {
     /** @type {SerialPort} */
     this.port = null;
@@ -30,7 +30,7 @@ class GPSManager {
   async connectToDevice() {
     const serialList = await SerialPort.list();
     const {path} = serialList.find(port => port.vendorId === this.vendorId);
-    return new SerialPort(path, { baudRate: this.baudrate,  autoOpen: false })
+    return new SerialPort({path: path, baudRate: this.baudrate,  autoOpen: false })
   }
 
   error(err) {
@@ -84,7 +84,7 @@ class GPSManager {
       case 'HNR-PVT':
           return [
             { id: WARNING_KEYS.GPS_NOT_ACQUIRED, data: !data.data.flags.gpsFixOk },
-            // { id: DATA_KEYS.GPS_SPEEED, data: 69 },
+            //{ id: DATA_KEYS.GPS_SPEEED, data: testSpeed },
             { id: DATA_KEYS.GPS_SPEEED, data: (Math.min(255, Math.floor(data.data.gSpeed*0.0223693629)), 0)}, // mm/s to mph;
           ] 
       default:
