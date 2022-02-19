@@ -8,7 +8,7 @@ This is the compnent that gets installed on the raspberry Pi. It will run a Node
 2. listen and parse CAN messages from the CAN hat
 3. Communicate with the dash via a websocket
 
-# Update: currently attempting to build and upload a fastboot custom Pi 4 image 
+# NOTE: this build is for Raspberry Pi 4 - buster/32bit;  I am currently working on a new Bullseye/64 bit build.
 
 # Setup Hardware
 
