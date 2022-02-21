@@ -3,24 +3,28 @@ import racePackDecoder from './CAN/racepakDecoder.js';
 import { DATA_KEYS, WARNING_KEYS } from './dataKeys.js';
 import DataStore from './DataStore.js';
 import RingBuffer from './lib/ringBuffer.js';
-import FuelLevelResetButton from './IO/FuelLevelResetButton.js';
+import ButtonManager from './IO/Buttons.js';
 
 const decoder = racePackDecoder; // alias
 
 export default (carSettings) => {
+  let buttons = new ButtonManager({
+    onAction: () => ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 100),
+    holdNeeded: true,
+  });
   let msSample = 0;
   let lastMpgSampleTime = 0;
   let distance = 0;
   let lastFuelSample = 0; // Last Gal / Millisecond sample
   const ecuDataStore = new DataStore(); // just assign a big ass buffer
   const mpgSampler = new RingBuffer(Buffer.alloc(1024));
-  // const fuelLevelReset = new FuelLevelResetButton(() => ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 100));
 
   const persistantData = {
     gallonsLeft: 0,
   };
 
   const init = ({ gallonsLeft }) => {
+    buttons.start();
     persistantData.gallonsLeft = gallonsLeft;
     ecuDataStore.write(DATA_KEYS.ODOMETER, carSettings.odometer);
     ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 100); // percent - for now, until we save out our level to HDD
@@ -145,6 +149,11 @@ export default (carSettings) => {
 
   const ecu = {
     init,
+    stop: () => {
+      try {
+        buttons.stop();
+      } catch (error) {  }
+    },
     /**
      *
      * @returns {Buffer}

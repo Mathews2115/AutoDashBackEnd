@@ -8,17 +8,24 @@ This is the compnent that gets installed on the raspberry Pi. It will run a Node
 2. listen and parse CAN messages from the CAN hat
 3. Communicate with the dash via a websocket
 
-# NOTE: this build is for Raspberry Pi 4 - buster/32bit;  I am currently working on a new Bullseye/64 bit build.
+*PRE-REQUISITES:*
+1. Still running on Buster - NOT Bullseye yet!
+2. Node14 is a must
+
 
 # Setup Hardware
 
 ## Hardware Used
 * [waveshare 7.9 monitor](https://www.waveshare.com/wiki/7.9inch_HDMI_LCD)
 * 3.0+ USB flash drive (optional)
-* [Waveshare dual CAN hat](https://www.waveshare.com/wiki/2-CH_CAN_HAT) 
-* [Geekworm x715 Power/Fan](https://wiki.geekworm.com/X715_Software)
-* [Geekworm x728 UPS](https://wiki.geekworm.com/X728-Software)
-* [SparkFun GPS - NEO-M8U](https://www.sparkfun.com/products/16329)
+* [Waveshare dual CAN hat](https://www.waveshare.com/wiki/2-CH_CAN_HAT) - CAN data from Holley ECU
+* [Geekworm x715 Power/Fan](https://wiki.geekworm.com/X715_Software) - for 12-40v input to 5v output conversion
+* [Geekworm x728 UPS](https://wiki.geekworm.com/X728-Software) - For safe shutdown/battery backup
+* [SparkFun GPS - NEO-M8U](https://www.sparkfun.com/products/16329) - Speedo and odometer
+* Buttons / LEDS (optional)
+  * A momentary switch to reset the fuel readings (because my fuel sender is non functional) (optional obviously)
+  * [Adafruit i2c LED/Switch board](https://www.adafruit.com/product/5296) (to handle buttons/leds)
+  * [i2c hat from sparkfun](https://www.sparkfun.com/products/14459)
 
 ## Update PI EEPROM for new Bootloader
 if you dont care about booting from USB, just skip to Setting up Image.
@@ -71,7 +78,8 @@ hdmi_timings=400 0 100 10 140 1280 10 20 20 2 0 0 0 60 0 43000000 3
    * (default password is raspberry)
 10. Update everything: `sudo apt-get -y update && sudo apt-get -y upgrade ; sudo apt-get autoremove ; sudo apt-get dist-upgrade -y ; sudo reboot`
 
-
+## CAN Handling
+Don't bother doing any of this if you dont have the hat hooked up - it will cause issues on bootup - like no wifi
 ### Setup WaveShare Dual CAN hat
 https://www.waveshare.com/wiki/2-CH_CAN_HAT
 1. `sudo nano /boot/config.txt`
@@ -97,7 +105,8 @@ iface can0 inet manual
 ```
 7. `sudo reboot`
 
-
+## Safe Shutdown / Battery Backup
+Don't bother doing any of this if you dont have the hat hooked up - it will cause issues on bootup.
 ### Setup Geekworm x728 UPS script
 When the power is cut to the RPI, we want it to auto shutdown safely in about 30 seconds of sustained no power.
 
@@ -230,6 +239,7 @@ We will need to this to use uWebSockets on ARM...we have to build it on the pi
 
 # Speed up Boot times
 ## overclock?
+For some reason I cant get this to work yet....
 1. You'll need active cooling on the pi if you do this, otherwise it will throttle itself down as it turns into metal goo
 2. `sudo nano /boot/config.txt`
 3. add:
@@ -239,6 +249,7 @@ arm_freq=2147
 gpu_freq=750
 ```
 ## disable services
+Consider disabling services to make boot time faster (if you dont need them)
 * `sudo systemctl disable raspi-config.service`
 * `sudo systemctl disable apt-daily-upgrade.service`
 * `sudo systemctl disable rpi-eeprom-update.service`

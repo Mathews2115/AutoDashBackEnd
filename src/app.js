@@ -68,6 +68,7 @@ export default function (canChannel, settings) {
     if (dashComms && dashComms.started) dashComms.stop();
     if (canComms && canComms.started) canComms.stop();
     if (gps && gps.started) gps.stop();
+    ecu.stop();
     console.log(" -------- STOPPED   -------------");
   }
   
