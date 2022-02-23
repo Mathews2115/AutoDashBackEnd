@@ -9,8 +9,8 @@ This is the compnent that gets installed on the raspberry Pi. It will run a Node
 3. Communicate with the dash via a websocket
 
 *PRE-REQUISITES:*
-1. Still running on Buster - NOT Bullseye yet!
-2. Node14 is a must
+1. 64bit Bullseye OS
+2. Node16 - 64 bit (just get ARMv8)
 
 
 # Setup Hardware
@@ -77,6 +77,8 @@ hdmi_timings=400 0 100 10 140 1280 10 20 20 2 0 0 0 60 0 43000000 3
    * `ssh pi@raspberrypi.local` 
    * (default password is raspberry)
 10. Update everything: `sudo apt -y update && sudo apt -y upgrade ; sudo apt autoremove ; sudo apt dist-upgrade -y ; sudo reboot`
+11. `sudo raspi-config`
+    1.  turn on auto login
 
 ## CAN Handling
 Don't bother doing any of this if you dont have the hat hooked up - it will cause issues on bootup - like no wifi
@@ -141,7 +143,7 @@ xset s noblank
 xset -dpms
 
 # This is for the ---waveshare--- monitor - since rotation is ignored with the accelerated driver
-xrandr --output HDMI-1 --rotate right
+xrandr --output HDMI-1 --rotate left
 
 # Allow quitting the X server with CTRL-ATL-Backspace
 setxkbmap -option terminate:ctrl_alt_bksp
@@ -161,53 +163,37 @@ Add this when/if you want chromium to start upon boot
 1. `sudo nano /home/pi/.bash_profile`
 2. Add this: 
    1. `[[ -z $DISPLAY && $XDG_VTNR -eq 1 ]] && startx -- -nocursor`
-
-### LETS MAKE CHROME RUN FASTER PLZ
-We need the pi4 gl driver, so lets download it and use it
-1. Install drivers: 
-   1. `sudo apt-get install libgles2-mesa`
-2. make sure ethis is in your `sudo nano /boot/config.txt`
-```
-[pi4]
-# Enable DRM VC4 V3D driver on top of the dispmanx display stack
-dtoverlay=vc4-fkms-v3d
-max_framebuffers=2
-```
 3. Reboot 
 
 # Setup Dash firmware
 ## Prereqs to build AutoDasahBackEnd
-1. install yarn 
-  ```
-  curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/yarnkey.gpg >/dev/null
-     echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
-     sudo apt-get update && sudo apt-get install yarn
-  ```
-2. From your Local Computer, copy the Dash BackEnd software over. (sans the node_modules)
-3. (you already installed the CANUtil libraries from above...if not, go ahead and do that now)
 ## Install Node16
 1. Instructions from: https://www.officialrajdeepsingh.dev/install-node-js-and-npm-latest-version-on-raspberry-pi-4/
 ```
 https://nodejs.org/dist/v16.14.0/node-v16.14.0-linux-arm64.tar.xz
 wget https://nodejs.org/dist/v16.14.0/node-v16.14.0-linux-armv7l.tar.xz
-tar -xf node-v16.14.0-linux-armv7l.tar.xz
-rm node-v16.14.0-linux-armv7l.tar.xz
-cd node-v16.14.0-linux-armv7l
+tar -xf node-v16.14.0-linux-arm64.tar.xz
+rm node-v16.14.0-linux-arm64.tar.xz
+cd node-v16.14.0-linux-arm64
 sudo cp -R * /usr/local/
 sudo reboot
 node -v
 ```
 
+1. install yarn 
+  ```
+  curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/yarnkey.gpg >/dev/null
+     echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+     sudo apt update && sudo apt install yarn
+  ```
+2. From your Local Computer, copy the Dash BackEnd software over. (sans the node_modules)
+
+
 ## Yarn Install
 1. `cd AutoDashBackEnd/`
 2. `rm yarn.lock`
-3. `cp yarn.lock.rpi yarn.lock`
+3. `cp yarn.lock.rpi_64 yarn.lock`
 4. `yarn`
-
-## Build uWebSocket.js for Raspberry Pi
-We will need to this to use uWebSockets on ARM...we have to build it on the pi
-   1. https://github.com/jmscreation/RBPI.uWebSockets.js
-   2. run the build script and copy the binary to our node module `cp ./dist/uws_linux_arm_83.node ../AutoDashBackEnd/node_modules/uWebSockets.js/`
 
 ## Simulate CAN in dev on the Pi
 1. Start Dev CAN service `RPI_system/prepare_dev.sh`
@@ -235,16 +221,6 @@ We will need to this to use uWebSockets on ARM...we have to build it on the pi
 * 
 
 # Speed up Boot times
-## overclock?
-For some reason I cant get this to work yet....
-1. You'll need active cooling on the pi if you do this, otherwise it will throttle itself down as it turns into metal goo
-2. `sudo nano /boot/config.txt`
-3. add:
-```
-over_voltage=6
-arm_freq=2147
-gpu_freq=750
-```
 ## disable services
 Consider disabling services to make boot time faster (if you dont need them)
 * `sudo systemctl disable raspi-config.service`
