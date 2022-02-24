@@ -76,17 +76,22 @@ export class SeesawSwitch {
     this.client = i2c.openSync(1).promisifiedBus();
     this.switchData = Buffer.alloc(4); // spots for 4 switches
     this.timeout = null;
-    this.pulsateIncremente = 0;
-    this.flashingSwitch = null;
+    this.flashingSwitch = null;  // TODO: make this work on all four switches; it just works on #1 right now
+    this.buttonState = [
+      {id: 0, pressed: false, debounceTime: 0, switchPin: SWITCH1, PWM: PWM1, pulsateIncremente: 0}, 
+      {id: 1, pressed: false, debounceTime: 0, switchPin: SWITCH2, PWM: PWM2, pulsateIncremente: 0}, 
+      {id: 2, pressed: false, debounceTime: 0, switchPin: SWITCH3, PWM: PWM3, pulsateIncremente: 0},  
+      {id: 3, pressed: false, debounceTime: 0, switchPin: SWITCH4, PWM: PWM4, pulsateIncremente: 0}, 
+    ];
   }
 
   async initialize() {
     await this.write(_STATUS_BASE, _STATUS_SWRST, Buffer.from[255]);
     // initial switches in seesaw adafruit board
     await this.setPinMode(SWITCH1);
-    await this.setPinMode(SWITCH2);
-    await this.setPinMode(SWITCH3);
-    await this.setPinMode(SWITCH4);
+  //   await this.setPinMode(SWITCH2);
+  //   await this.setPinMode(SWITCH3);
+  //   await this.setPinMode(SWITCH4);
   }
 
   /**
@@ -130,7 +135,6 @@ export class SeesawSwitch {
   async getSwitchState(pin) {
     pin = 1 << pin;
     await this.read(_GPIO_BASE, _GPIO_BULK, this.switchData, this.switchData.length); // read all switch data into buffer
-    await delay(15);
     return (
       pin
       & ((this.switchData[0] << 24)
@@ -148,7 +152,7 @@ export class SeesawSwitch {
    */
   async read(regBase, reg, buffer, length) {
     await this.write(regBase, reg);
-    await delay(15);
+    await delay(30);
     return this.client.i2cRead(this.address, length, buffer);
   }
 
@@ -159,30 +163,51 @@ export class SeesawSwitch {
     }
   }
 
+  async onPressedSignal(button) {
+    if(!button.pressed) {
+      button.pressed = true; // mark button was pressed and begin the debounce timer
+      button.debounceTime = performance.now();
+    }
+    else if(performance.now() - button.debounceTime > 300) {
+      // debounce time has passed - ack button press
+      // NOTE: when switching to arm64 (might be a coincidence), button press noise would pop up
+      flashTimePassed = 0;
+      this.flashingSwitch = null; // stop flashing function
+      button.pulsateIncremente += 25;
+      await this.analogWrite(button.PWM, button.pulsateIncremente);
+      this.onButtonAction(button.id, true);
+    }
+  }
+
+  async onReleasedSignal(button) {
+    button.pressed = false;
+    button.debounceTime = 0;
+    button.pulsateIncremente = 0;
+    await this.analogWrite(button.PWM, 0);
+    this.onButtonAction(button.id, false);
+  }
+
+  // NOTE: right now, harded coded to just one switch
   async pollSwitch() {
     try {
-      const pressed = await this.getSwitchState(SWITCH1);
-      if (pressed) {
-        flashTimePassed = 0;
-        this.flashingSwitch = null; // stop flashing
-        this.pulsateIncremente += 25;
-        await this.analogWrite(PWM1, this.pulsateIncremente);
-        this.onButtonAction(0, true);
-      } else if (this.pulsateIncremente) {
-        this.pulsateIncremente = 0;
-        await this.analogWrite(PWM1, 0);
-        this.onButtonAction(0, false);
+      const highState = await this.getSwitchState(SWITCH1);
+      const button = this.buttonState[0];
+
+      if (highState) {
+        await this.onPressedSignal(button);
+      } else if (button.pulsateIncremente) {
+        await this.onReleasedSignal(button);
       } else if (this.flashingSwitch) {
-        this.pulsateIncremente += 25;
-        await this.analogWrite(PWM1, this.pulsateIncremente);
+        button.pulsateIncremente += 25;
+        await this.analogWrite(PWM1, button.pulsateIncremente);
         if (performance.now() - flashTimePassed > 1500) {
           flashTimePassed = 0;
           this.flashingSwitch = null; // stop flashing
-          this.pulsateIncremente = 0;
-          await this.analogWrite(PWM1, 0);
+          button.pulsateIncremente = 0;
+          await this.analogWrite(button.PWM, 0);
         }
       }
-      this.timeout = setTimeout(() => this.pollSwitch(), 66);
+      this.timeout = setTimeout(() => this.pollSwitch(), 33);
     } catch (e) {
       clearTimeout(this.timeout);
       this.onError(e);

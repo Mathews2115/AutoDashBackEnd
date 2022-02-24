@@ -61,7 +61,7 @@ export default class Buttons {
   onReleased(button) {
     if (button.pressed) {
       if (button.onAction) button.onAction();
-      if (button.holdNeeded && performance.now() - button.pressedSince > 1000) {
+      if (button.holdNeeded && performance.now() - button.pressedSince > 3000) {
         this.devices.flashSwitch();
       }
     }

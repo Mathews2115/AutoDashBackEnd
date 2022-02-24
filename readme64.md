@@ -63,11 +63,12 @@ network={
 5. add 
 ```
 # waveshare 7.9 screen - https://www.waveshare.com/wiki/7.9inch_HDMI_LCD
-max_usb_current=1
 hdmi_group=2
 hdmi_mode=87
 hdmi_timings=400 0 100 10 140 1280 10 20 20 2 0 0 0 60 0 43000000 3
+bootcode_delay=1
 ```
+The boot code delay is so the monitor has time to fully power on (if powered by a separate power supply - otherwise feel free to omit that line)
 ### Boot up
 6. Pop the USB/SD in the pi and boot up
 7. login pi/raspberry
@@ -144,6 +145,7 @@ xset -dpms
 
 # This is for the ---waveshare--- monitor - since rotation is ignored with the accelerated driver
 xrandr --output HDMI-1 --rotate left
+#DISPLAY=:0 xrandr --output HDMI-1 --rotate left
 
 # Allow quitting the X server with CTRL-ATL-Backspace
 setxkbmap -option terminate:ctrl_alt_bksp
@@ -152,10 +154,8 @@ setxkbmap -option terminate:ctrl_alt_bksp
 sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' ~/.config/chromium/'Local State'
 sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]\+"/"exit_type":"Normal"/' ~/.config/chromium/Default/Preferences
 
-chromium-browser --noerrdialogs --ignore-gpu-blocklist --enable-accelerated-video-decode --enable-gpu-rasterization --disable-infobars --disable-full-history-sync \
---kiosk http:\\localhost:3000 \
---enable-vulkan \
---enable-zero-copy
+chromium-browser --noerrdialogs --disable-infobars --disable-full-history-sync \
+--kiosk http:\\localhost:3000
 ```
 
 #### AutoStart Chromium 
@@ -167,11 +167,10 @@ Add this when/if you want chromium to start upon boot
 
 # Setup Dash firmware
 ## Prereqs to build AutoDasahBackEnd
-## Install Node16
+## Install Node16 for Armv8(arm64)
 1. Instructions from: https://www.officialrajdeepsingh.dev/install-node-js-and-npm-latest-version-on-raspberry-pi-4/
 ```
-https://nodejs.org/dist/v16.14.0/node-v16.14.0-linux-arm64.tar.xz
-wget https://nodejs.org/dist/v16.14.0/node-v16.14.0-linux-armv7l.tar.xz
+wget https://nodejs.org/dist/v16.14.0/node-v16.14.0-linux-arm64.tar.xz
 tar -xf node-v16.14.0-linux-arm64.tar.xz
 rm node-v16.14.0-linux-arm64.tar.xz
 cd node-v16.14.0-linux-arm64
