@@ -20,7 +20,7 @@ export default class Buttons {
      */
     this.buttons = [
       {
-        onAction: button1.onAction,
+        onAction: button1.onAction || (() => {}),
         pressed: false,
         holdNeeded: button1.holdNeeded,
         pressedSince: null,
@@ -49,7 +49,7 @@ export default class Buttons {
     if (!button.pressed) {
       button.pressed = true;
       button.pressedSince = performance.now();
-      if (button.onAction && !button.holdNeeded) {
+      if (!button.holdNeeded) {
         button.onAction();
       }
     }
@@ -60,10 +60,15 @@ export default class Buttons {
    */
   onReleased(button) {
     if (button.pressed) {
-      if (button.onAction) button.onAction();
-      if (button.holdNeeded && performance.now() - button.pressedSince > 3000) {
-        this.devices.flashSwitch();
+      if (!button.holdNeeded) {
+        button.onAction();
       }
+      else if (performance.now() - button.pressedSince > 3000) {
+        this.devices.flashSwitch();
+        button.onAction();
+      }
+      // else no action needed;
+      button.pressed = false;
     }
   }
 

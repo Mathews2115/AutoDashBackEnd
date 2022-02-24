@@ -89,9 +89,9 @@ export class SeesawSwitch {
     await this.write(_STATUS_BASE, _STATUS_SWRST, Buffer.from[255]);
     // initial switches in seesaw adafruit board
     await this.setPinMode(SWITCH1);
-  //   await this.setPinMode(SWITCH2);
-  //   await this.setPinMode(SWITCH3);
-  //   await this.setPinMode(SWITCH4);
+    await this.setPinMode(SWITCH2);
+    await this.setPinMode(SWITCH3);
+    await this.setPinMode(SWITCH4);
   }
 
   /**
@@ -163,6 +163,17 @@ export class SeesawSwitch {
     }
   }
 
+  async onFlashing(button) {
+    button.pulsateIncremente += 100;
+    await this.analogWrite(button.PWM, button.pulsateIncremente);
+    if (performance.now() - flashTimePassed > 1500) {
+      flashTimePassed = 0;
+      this.flashingSwitch = null; // stop flashing
+      button.pulsateIncremente = 0;
+      await this.analogWrite(button.PWM, 0);
+    }
+  }
+
   async onPressedSignal(button) {
     if(!button.pressed) {
       button.pressed = true; // mark button was pressed and begin the debounce timer
@@ -195,17 +206,10 @@ export class SeesawSwitch {
 
       if (highState) {
         await this.onPressedSignal(button);
-      } else if (button.pulsateIncremente) {
-        await this.onReleasedSignal(button);
       } else if (this.flashingSwitch) {
-        button.pulsateIncremente += 25;
-        await this.analogWrite(PWM1, button.pulsateIncremente);
-        if (performance.now() - flashTimePassed > 1500) {
-          flashTimePassed = 0;
-          this.flashingSwitch = null; // stop flashing
-          button.pulsateIncremente = 0;
-          await this.analogWrite(button.PWM, 0);
-        }
+        await this.onFlashing(button);
+      } else if (!highState && button.pressed) {
+        await this.onReleasedSignal(button);
       }
       this.timeout = setTimeout(() => this.pollSwitch(), 33);
     } catch (e) {
