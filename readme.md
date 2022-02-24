@@ -158,7 +158,9 @@ setxkbmap -option terminate:ctrl_alt_bksp
 sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' ~/.config/chromium/'Local State'
 sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]\+"/"exit_type":"Normal"/' ~/.config/chromium/Default/Preferences
 
-chromium-browser --noerrdialogs --disable-infobars --disable-full-history-sync \
+# IF THE WEBGL DISPLAY IS FLIPPED: use this line (from here https://forums.raspberrypi.com/viewtopic.php?f=91&t=274315 )
+MESA_EXTENSION_OVERRIDE=-GL_MESA_framebuffer_flip_y chromium-browser --noerrdialogs --disable-infobars --disable-full-history-sync \
+#chromium-browser --noerrdialogs --disable-infobars --disable-full-history-sync \
 --kiosk http:\\localhost:3000
 ```
 
