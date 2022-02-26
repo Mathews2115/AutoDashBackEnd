@@ -135,6 +135,8 @@ sudo reboot
 #### Install x11 xserver and Chromium
 1. `sudo apt install --no-install-recommends xserver-xorg x11-xserver-utils xinit openbox --assume-yes`
 2. `sudo apt install --no-install-recommends chromium-browser --assume-yes`
+3. For now force the 32bit version?
+   1. `sudo apt install --no-install-recommends chromium-browser:armhf libwidevinecdm0  --assume-yes`
 * no idea what assume-yes does lol
 3. Now setup chromium with all the hardware enabled crap
 
@@ -159,8 +161,9 @@ sed -i 's/"exited_cleanly":false/"exited_cleanly":true/' ~/.config/chromium/'Loc
 sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]\+"/"exit_type":"Normal"/' ~/.config/chromium/Default/Preferences
 
 # IF THE WEBGL DISPLAY IS FLIPPED: use this line (from here https://forums.raspberrypi.com/viewtopic.php?f=91&t=274315 )
-MESA_EXTENSION_OVERRIDE=-GL_MESA_framebuffer_flip_y chromium-browser --noerrdialogs --disable-infobars --disable-full-history-sync \
-#chromium-browser --noerrdialogs --disable-infobars --disable-full-history-sync \
+#MESA_EXTENSION_OVERRIDE=-GL_MESA_framebuffer_flip_y chromium-browser --noerrdialogs --disable-infobars --disable-full-history-sync \
+
+chromium-browser --noerrdialogs --disable-infobars --disable-full-history-sync \
 --kiosk http:\\localhost:3000
 ```
 
@@ -227,7 +230,7 @@ node -v
 
 # Speed up Boot times
 ## disable services
-Consider disabling services to make boot time faster (if you dont need them)
+Consider disabling services to make boot time faster (if you dont need them) - havent curated the list below, disable at your own risk
 * `sudo systemctl disable raspi-config.service`
 * `sudo systemctl disable apt-daily-upgrade.service`
 * `sudo systemctl disable rpi-eeprom-update.service`
