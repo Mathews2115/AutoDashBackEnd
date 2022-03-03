@@ -3,18 +3,24 @@
 # This is the backend of the [Racepak/Holley Auto Digital Dash](https://github.com/Mathews2115/AutoDashFrontEnd). This pairs with the AutoDashFrontEnd
 **WARNING - BUILDING THIS WHILE WE ARE FLYING - EXPECT MASSIVE STUPID CHANGES ON A WHIM**
 
-This is the compnent that gets installed on the raspberry Pi. It will run a Node server that will
-1. Will host the AutoDashFrontEnd's dist files from `dist`. as some point
-2. listen and parse CAN messages from the CAN hat
-3. Communicate with the dash via a websocket
+## Why?
+My personal Digital Dash project for a heavily modified 1972 Ford LTD - communicating via CAN with a Holley EFI ECU and other goodies my car needs such as GPS speedo, fuel tank remaining estimation and whatever the heck else I'm gonna start throwing at it in the future.
 
-*PRE-REQUISITES:*
+## What?
+This is the compnent that gets installed on the raspberry Pi. It will run a Node server that will:
+1. Will host HTML/JS web content for chromium browser, (AutoDashFrontEnd)
+2. Parse CAN messages via a CAN hat from the Holley ECU
+3. Communicate with the dash via a websocket
+4. Parse GPS messages from a GPS chip via USB serial
+5. ...more to be added in the future!
+
+## PRE-REQUISITES:
 1. 64bit Bullseye OS
 2. Node16 - 64 bit (just get ARMv8)
 
-*bugs still being fixed on 64bit*
-1. opengl buffer is inverted
-2. waveshare monitor (when on separate power source from pi) is not getting signal on initial power on
+## NOTICE!
+1. waveshare monitor (when on separate power source from pi) is not getting signal on initial power on
+2. While I am building this specifically to fit on my project; I'm trying to make this modular enough for other people to pick and choose for their own needs if necessary. Feel free to fork this repo and go hog wild - just be sure to share some photos of your project because I love this stuff.
 
 
 # Setup Hardware
@@ -229,7 +235,7 @@ node -v
 * 
 
 # Speed up Boot times
-## disable services
+## consider disable services??
 Consider disabling services to make boot time faster (if you dont need them) - havent curated the list below, disable at your own risk
 * `sudo systemctl disable raspi-config.service`
 * `sudo systemctl disable apt-daily-upgrade.service`
@@ -297,8 +303,7 @@ Monitoring
 * Monitor CPU Clock Speed - `watch -n1 vcgencmd measure_clock arm`
 * Measure Temperature -     `watch -n1 vcgencmd measure_temp`
 
-
-# Personal Notes:
+# Personal Scratch Board/Notes:
 * making quick src updates: `scp -r ../AutoDashBackEnd/src pi@pi.local:/home/pi/AutoDashBackEnd/src` 
 * copy dist 
   *  `scp -r ../AutoDashFrontEnd/dist pi@pi.local:/home/pi/AutoDashBackEnd/dist/ `
