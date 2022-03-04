@@ -218,8 +218,7 @@ node -v
    1. `canplayer vcan0=can0  -I ./can_dumps/candump-racepack-running.log -li`
 
 ## Setup Can/Vcan Auto interface
-1. Dont forget to make your shell scripts executable `sudo chmod u+rw RPI_system/start_vcan.sh`
-2. For Development mode: `RPI_system/start_vcan.sh`
+1. For Development mode: `RPI_system/start_vcan.sh`
    
 ### Simulate CAN in dev on your Mac / Linux
 1. Start the virtual CAN interface: `.RPI_system/start_vcan.sh`
