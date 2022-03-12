@@ -8,10 +8,16 @@ import ButtonManager from './IO/Buttons.js';
 const decoder = racePackDecoder; // alias
 
 export default (carSettings) => {
-  let buttons = new ButtonManager({
+  let buttons = new ButtonManager([
+    // fuel reset button
+    {
     onAction: () => ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 100),
     holdNeeded: true,
-  });
+  }, {
+    // light / dark theme toggle
+    onAction: () => ecuDataStore.write(DATA_KEYS.LOW_LIGHT_DETECTED, ecuDataStore.read(DATA_KEYS.LOW_LIGHT_DETECTED) ? 0 : 1),
+    holdNeeded: false,
+  }]);
   let msSample = 0;
   let lastMpgSampleTime = 0;
   let distance = 0;
@@ -27,7 +33,8 @@ export default (carSettings) => {
     buttons.start();
     persistantData.gallonsLeft = gallonsLeft;
     ecuDataStore.write(DATA_KEYS.ODOMETER, carSettings.odometer);
-    ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 100); // percent - for now, until we save out our level to HDD
+    // percent - for now, until we save out our level to HDD
+    ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 100);
     ecuDataStore.write(DATA_KEYS.AVERAGE_MPG, 0);
     ecuDataStore.write(DATA_KEYS.CURRENT_MPG, 0);
     msSample = performance.now();
@@ -94,6 +101,7 @@ export default (carSettings) => {
         break;
       case DATA_KEYS.ODOMETER:
         data = data + carSettings.odometer;
+        break;
       default:
         break;
     }

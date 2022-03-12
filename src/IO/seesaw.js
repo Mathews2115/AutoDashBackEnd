@@ -129,12 +129,20 @@ export class SeesawSwitch {
     return this.client.i2cWrite(this.address, fullBuffer.length, fullBuffer);
   }
 
+  async getSwitchesState() {
+    await this.read(_GPIO_BASE, _GPIO_BULK, this.switchData, this.switchData.length); // read all switch data into buffer
+    return [
+      this.getSwitchState(SWITCH1),
+      this.getSwitchState(SWITCH2),
+      this.getSwitchState(SWITCH3),
+      this.getSwitchState(SWITCH4),
+    ]
+  }
   /**
    * @param {number} pin
    */
-  async getSwitchState(pin) {
+  getSwitchState(pin) {
     pin = 1 << pin;
-    await this.read(_GPIO_BASE, _GPIO_BULK, this.switchData, this.switchData.length); // read all switch data into buffer
     return (
       pin
       & ((this.switchData[0] << 24)
@@ -198,19 +206,22 @@ export class SeesawSwitch {
     this.onButtonAction(button.id, false);
   }
 
-  // NOTE: right now, harded coded to just one switch
+  handleSwitchStates(highState, button) {
+    if (highState) {
+      return this.onPressedSignal(button);
+    } else if (this.flashingSwitch) {
+      return this.onFlashing(button);
+    } else if (!highState && button.pressed) {
+      return this.onReleasedSignal(button);
+    }
+  }
+
   async pollSwitch() {
     try {
-      const highState = await this.getSwitchState(SWITCH1);
-      const button = this.buttonState[0];
-
-      if (highState) {
-        await this.onPressedSignal(button);
-      } else if (this.flashingSwitch) {
-        await this.onFlashing(button);
-      } else if (!highState && button.pressed) {
-        await this.onReleasedSignal(button);
-      }
+      let buttonStates = await this.getSwitchesState();
+      buttonStates.forEach(async (highState, i) => {
+        await this.handleSwitchStates(highState, this.buttonState[i]);
+      });
       this.timeout = setTimeout(() => this.pollSwitch(), 33);
     } catch (e) {
       clearTimeout(this.timeout);

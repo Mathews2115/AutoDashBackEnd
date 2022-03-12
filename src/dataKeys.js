@@ -1,8 +1,9 @@
 let key = 0;
 const keygen = (reset = false) => {
   if (reset) key = 0;
-  return key++; 
-}
+  key += 1;
+  return key;
+};
 
 export const DATA_KEYS = {
   // Data From CAN BUS
@@ -10,7 +11,7 @@ export const DATA_KEYS = {
   RPM: keygen(),
   RTC: keygen(),
   FUEL_PRESSURE: keygen(),
-  SPEEDO: keygen(),
+  SPEEDO: keygen(), // Holley Speed
   INJECTOR_PULSEWIDTH: keygen(),
   FUEL_FLOW: keygen(),
   CLOSED_LOOP_STATUS: keygen(),
@@ -31,18 +32,19 @@ export const DATA_KEYS = {
   BATT_VOLTAGE: keygen(),
 
   // Data from GPS
-  ODOMETER: keygen(),
+  ODOMETER: keygen(), // Current Miles Odometer
   TRIP_ODOMETER: keygen(), //
-  GPS_SPEEED: keygen(), //m
+  GPS_SPEEED: keygen(), // Speed MPH
   // HEADING: keygen(),
 
   // Our Data
   WARNINGS: keygen(),
-  FUEL_LEVEL: keygen(),
+  FUEL_LEVEL: keygen(), // 0-100%
   CURRENT_MPG: keygen(),
   AVERAGE_MPG: keygen(),
-  AVERAGE_MPG_POINTS: keygen(),
+  AVERAGE_MPG_POINTS: keygen(), // histogram of MPG points
   AVERAGE_MPG_POINT_INDEX: keygen(),
+  LOW_LIGHT_DETECTED: keygen(),
 };
 Object.freeze(DATA_KEYS);
 
@@ -57,7 +59,6 @@ export const WARNING_KEYS = {
   ECU_COMM: keygen(), // trouble communicating with ECU via CAN
   GPS_NOT_ACQUIRED: keygen(), // GPS working / or no 2d/3d fix aqcuired yet
   GPS_ERROR: keygen(), // some sort of untracked error occurred
-  COMM_ERROR: keygen(), 
-}
+  COMM_ERROR: keygen(),
+};
 Object.freeze(WARNING_KEYS);
-
