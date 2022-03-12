@@ -1,6 +1,6 @@
 import os from 'os';
 import { performance } from 'perf_hooks';
-import { SeesawSwitch } from './seesaw';
+import { SeesawSwitch } from './seesaw.js';
 
 //  momentary swtich that is connected to a GPIO pin.
 // with a led connected as well
@@ -15,7 +15,8 @@ export default class Buttons {
     buttons.forEach(btn => {
       this.buttons.push(
         {
-          onAction: btn.onAction || (() => {}),
+          onPressed:  btn.onPressed || (() => {}),
+          onReleased: btn.onReleased || (() => {}),
           pressed: false,
           holdNeeded: btn.holdNeeded,
           pressedSince: null,
@@ -38,29 +39,29 @@ export default class Buttons {
   }
 
   /**
-   * @param {{ pressed: any; onAction: any; holdNeeded: any; pressedSince: any; }} button
+   * @param {{ pressed: any; onPressed: any; holdNeeded: any; pressedSince: any; }} button
    */
   onPressed(button) {
     if (!button.pressed) {
       button.pressed = true;
       button.pressedSince = performance.now();
       if (!button.holdNeeded) {
-        button.onAction();
+        button.onPressed();
       }
     }
   }
 
   /**
-   * @param {{ pressed?: boolean; onAction: any; holdNeeded: any; pressedSince: any; }} button
+   * @param {{ pressed?: boolean; onReleased: any; holdNeeded: any; pressedSince: any; }} button
    */
   onReleased(button) {
     if (button.pressed) {
       if (!button.holdNeeded) {
-        button.onAction();
+        button.onReleased();
       }
       else if (performance.now() - button.pressedSince > 3000) {
         this.devices.flashSwitch();
-        button.onAction();
+        button.onReleased();
       }
       // else no action needed;
       button.pressed = false;

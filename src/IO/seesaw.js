@@ -45,6 +45,8 @@ const _TIMER_FREQ = 0x02;
 const _HW_ID_CODE = 0x55;
 const _EEPROM_I2C_ADDR = 0x3f;
 
+const OFF_LED_LEVEL = 5;
+
 /**
  * @param {number} x
  * @param {number} in_min
@@ -92,6 +94,8 @@ export class SeesawSwitch {
     await this.setPinMode(SWITCH2);
     await this.setPinMode(SWITCH3);
     await this.setPinMode(SWITCH4);
+    await this.analogWrite(PWM1,OFF_LED_LEVEL);
+    await this.analogWrite(PWM2,OFF_LED_LEVEL);
   }
 
   /**
@@ -134,8 +138,8 @@ export class SeesawSwitch {
     return [
       this.getSwitchState(SWITCH1),
       this.getSwitchState(SWITCH2),
-      this.getSwitchState(SWITCH3),
-      this.getSwitchState(SWITCH4),
+      // this.getSwitchState(SWITCH3),
+      // this.getSwitchState(SWITCH4),
     ]
   }
   /**
@@ -178,7 +182,7 @@ export class SeesawSwitch {
       flashTimePassed = 0;
       this.flashingSwitch = null; // stop flashing
       button.pulsateIncremente = 0;
-      await this.analogWrite(button.PWM, 0);
+      await this.analogWrite(button.PWM, OFF_LED_LEVEL);
     }
   }
 
@@ -199,11 +203,13 @@ export class SeesawSwitch {
   }
 
   async onReleasedSignal(button) {
-    button.pressed = false;
-    button.debounceTime = 0;
-    button.pulsateIncremente = 0;
-    await this.analogWrite(button.PWM, 0);
-    this.onButtonAction(button.id, false);
+    if (button.debounceTime > 300) {
+      button.pressed = false;
+      button.debounceTime = 0;
+      button.pulsateIncremente = 0;
+      await this.analogWrite(button.PWM, OFF_LED_LEVEL);
+      this.onButtonAction(button.id, false);
+    }
   }
 
   handleSwitchStates(highState, button) {

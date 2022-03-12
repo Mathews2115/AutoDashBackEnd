@@ -11,11 +11,11 @@ export default (carSettings) => {
   let buttons = new ButtonManager([
     // fuel reset button
     {
-    onAction: () => ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 100),
+    onReleased: () => ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 100),
     holdNeeded: true,
   }, {
     // light / dark theme toggle
-    onAction: () => ecuDataStore.write(DATA_KEYS.LOW_LIGHT_DETECTED, ecuDataStore.read(DATA_KEYS.LOW_LIGHT_DETECTED) ? 0 : 1),
+    onPressed: () => ecuDataStore.write(DATA_KEYS.LOW_LIGHT_DETECTED, ecuDataStore.read(DATA_KEYS.LOW_LIGHT_DETECTED) ? 0 : 1),
     holdNeeded: false,
   }]);
   let msSample = 0;
