@@ -209,6 +209,11 @@ node -v
 3. `cp yarn.lock.rpi_64 yarn.lock`
 4. `yarn`
 
+### Notes on Yarn.lock
+* yarn.lock - Linux desktop file
+* yarn.lock.rpi - 32 Bit version of raspi 
+* yarn.lock.rpi_64 - x64 version of raspi <- current for raspberry pi 4
+
 ## Simulate CAN in dev on the Pi
 1. Start Dev CAN service `RPI_system/prepare_dev.sh`
    1. see that file to configure what canfile to run
