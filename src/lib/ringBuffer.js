@@ -20,7 +20,7 @@ class RingBuffer {
       for (let i = 0; i < length; i++) {
         sum += this.buffer.readUInt8(i);
       }
-      return sum / this.length;
+      return sum / length;
     }
 
     /**
