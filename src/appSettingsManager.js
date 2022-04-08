@@ -2,18 +2,24 @@ import fs from 'fs';
 
 const FILE = './settings/appSettings.json'
 
-export const appSettingsManager = (settings) => {
-  let gallonsLeft = settings.ecu.tank_size; // initial setting for gallons left
+/**
+ * @typedef CarPersistantData
+ * @type {object}
+ * @property {Number} odometer
+ * @property {Number} gallonsLeft
+ */
 
-  const readPersistantData = () => {
+export const appSettingsManager = () => {
+  /**
+   * Returns data that is saved to file
+   * @returns {CarPersistantData}
+   */
+  const init = () => {
     const data = fs.readFileSync(FILE, {flag: 'r+', encoding: 'utf8'});
     const settings = JSON.parse(data || '{}');
-    gallonsLeft = settings.gallonsLeft || gallonsLeft;
-  }
 
-  const init = () => {
-    readPersistantData();
-    return {gallonsLeft: gallonsLeft};
+    // @returns {CarPersistantData} - settings
+    return settings;
   }
 
   const saveSettings = (settings) => {

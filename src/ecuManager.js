@@ -1,9 +1,9 @@
-import { performance } from 'perf_hooks';
-import racePackDecoder from './CAN/racepakDecoder.js';
-import { DATA_KEYS, WARNING_KEYS } from './dataKeys.js';
-import DataStore from './DataStore.js';
-import RingBuffer from './lib/ringBuffer.js';
-import ButtonManager from './IO/Buttons.js';
+import { performance } from "perf_hooks";
+import racePackDecoder from "./CAN/racepakDecoder.js";
+import { DATA_KEYS, WARNING_KEYS } from "./dataKeys.js";
+import DataStore from "./DataStore.js";
+import RingBuffer from "./lib/ringBuffer.js";
+import ButtonManager from "./IO/Buttons.js";
 
 const decoder = racePackDecoder; // alias
 
@@ -11,35 +11,64 @@ export default (carSettings) => {
   let buttons = new ButtonManager([
     // fuel reset button
     {
-    onReleased: () => ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 100),
-    holdNeeded: true,
-  }, {
-    // light / dark theme toggle
-    onPressed: () => ecuDataStore.write(DATA_KEYS.LOW_LIGHT_DETECTED, ecuDataStore.read(DATA_KEYS.LOW_LIGHT_DETECTED) ? 0 : 1),
-    holdNeeded: false,
-  }]);
+      onReleased: () => ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 100),
+      holdNeeded: true,
+    },
+    {
+      // light / dark theme toggle
+      onPressed: () =>
+        ecuDataStore.write(
+          DATA_KEYS.LOW_LIGHT_DETECTED,
+          ecuDataStore.read(DATA_KEYS.LOW_LIGHT_DETECTED) ? 0 : 1
+        ),
+      holdNeeded: false,
+    },
+  ]);
   let msSample = 0;
   let lastMpgSampleTime = 0;
   let distance = 0;
   let lastFuelSample = 0; // Last Gal / Millisecond sample
+  let baseOdometerReading = 0; // odometer reading when app started
   const ecuDataStore = new DataStore(); // just assign a big ass buffer
   const mpgSampler = new RingBuffer(Buffer.alloc(1024));
+  let gallonsLeft = 0;
 
-  const persistantData = {
-    gallonsLeft: 0,
-  };
-
-  const init = ({ gallonsLeft }) => {
-    buttons.start();
-    persistantData.gallonsLeft = gallonsLeft;
-    ecuDataStore.write(DATA_KEYS.ODOMETER, carSettings.odometer);
-    // percent - for now, until we save out our level to HDD
-    ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 100);
+  /**
+   * Initialize Fuel Readings - get the last known gallons left
+   * @param {Number} persistedGallonsLeft
+   */
+  const initializeFuel = (persistedGallonsLeft) => {
+    gallonsLeft = persistedGallonsLeft;
+    ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 0);
     ecuDataStore.write(DATA_KEYS.AVERAGE_MPG, 0);
     ecuDataStore.write(DATA_KEYS.CURRENT_MPG, 0);
+    updateFuelLeft();
+  };
+
+  /**
+   * Initialize the Odometer reading with the last known saved readout
+   * @param {Number} lastSavedReading - last saved odometer reading
+   */
+  const initializeOdometer = (lastSavedReading) => {
+    baseOdometerReading = lastSavedReading || carSettings.ecu.odometer;
+    ecuDataStore.write(DATA_KEYS.ODOMETER, baseOdometerReading);
+  };
+
+  const init = ({ gallonsLeft, odometer }) => {
+    buttons.start(); // start listening for button presses
+    initializeFuel(gallonsLeft);
+    initializeOdometer(odometer);
+
     msSample = performance.now();
     lastMpgSampleTime = performance.now();
   };
+
+  const updateFuelLeft = () => {
+    ecuDataStore.write(
+      DATA_KEYS.FUEL_LEVEL,
+      Math.ceil((gallonsLeft / carSettings.tank_size) * 100)
+    );
+  }
 
   const updateValue = ({ id, data }) => {
     // do any special handling depending on the new updated value
@@ -51,38 +80,41 @@ export default (carSettings) => {
         //  calculate fuel consumption based on the last sample
         const gpMs = (data * 0.1621) / 3600000; // convert from pounds/hour to gal/hour, then to to gal/millisecond
         const pMin = Math.min(lastFuelSample, gpMs);
-        const gallonsConsumed = (msDelta * (Math.max(lastFuelSample, gpMs) - pMin)) / 2 + msDelta * pMin;
+        const gallonsConsumed =
+          (msDelta * (Math.max(lastFuelSample, gpMs) - pMin)) / 2 +
+          msDelta * pMin;
 
         // update the fuel level
-        persistantData.gallonsLeft -= gallonsConsumed;
+        gallonsLeft -= gallonsConsumed;
 
         // SPEED BASED DISTANCE - distance (m) = speed (m/millisecond) * time (ms)
         // calculate distance since last sample
         // we do this because the odometer is in mile denom; where as can get tiny slices of a mile traveled based on the speed and time
-        distance = (ecuDataStore.read(DATA_KEYS.GPS_SPEEED) / 3600000) * msDelta;
+        distance =
+          (ecuDataStore.read(DATA_KEYS.GPS_SPEEED) / 3600000) * msDelta;
 
         // calc average MPGs
         const currentMpg = Math.floor(distance / gallonsConsumed);
 
-        // add a new sample every 5 seconds
-        if (newMsSample - lastMpgSampleTime > 5000) {
+        // add a new sample every 10 seconds
+        if (newMsSample - lastMpgSampleTime > 10000) {
           lastMpgSampleTime = newMsSample;
           ecuDataStore.averageMPGPoints.push(mpgSampler.average);
           ecuDataStore.write(
             DATA_KEYS.AVERAGE_MPG_POINT_INDEX,
-            ecuDataStore.averageMPGPoints.frontOffset,
+            ecuDataStore.averageMPGPoints.frontOffset
           );
-          ecuDataStore.write(DATA_KEYS.AVERAGE_MPG, ecuDataStore.averageMPGPoints.average);
+          ecuDataStore.write(
+            DATA_KEYS.AVERAGE_MPG,
+            ecuDataStore.averageMPGPoints.average
+          );
           mpgSampler.reset();
         } else {
           mpgSampler.push(currentMpg);
         }
 
         ecuDataStore.write(DATA_KEYS.CURRENT_MPG, currentMpg);
-        ecuDataStore.write(
-          DATA_KEYS.FUEL_LEVEL,
-          Math.ceil((persistantData.gallonsLeft / carSettings.tank_size) * 100),
-        );
+        updateFuelLeft();
 
         msSample = newMsSample;
         lastFuelSample = gpMs;
@@ -90,17 +122,29 @@ export default (carSettings) => {
       case DATA_KEYS.CTS:
         ecuDataStore.updateWarning(
           WARNING_KEYS.ENGINE_TEMPERATURE,
-          data > carSettings.engine_temp_high,
+          data > carSettings.engine_temp_high
         );
         break;
       case DATA_KEYS.OIL_PRESSURE:
-        ecuDataStore.updateWarning(WARNING_KEYS.OIL_PRESSURE, (data < carSettings.oil_low_limit));
+        ecuDataStore.updateWarning(
+          WARNING_KEYS.OIL_PRESSURE,
+          data < carSettings.oil_low_limit
+        );
         break;
       case DATA_KEYS.BATT_VOLTAGE:
-        ecuDataStore.updateWarning(WARNING_KEYS.BATT_VOLTAGE, data < carSettings.voltage_low_limit);
+        ecuDataStore.updateWarning(
+          WARNING_KEYS.BATT_VOLTAGE,
+          data < carSettings.voltage_low_limit
+        );
         break;
       case DATA_KEYS.ODOMETER:
-        data = data + carSettings.odometer;
+        // the data represents the offset from our base odometer reading
+        // if data is zero, that means the odometer reading has been reset to zero
+        if (data === 0) {
+          //update our base reading to be whatever we have stored in the current odometer
+          baseOdometerReading = ecuDataStore.read(DATA_KEYS.ODOMETER);
+        }
+        data += baseOdometerReading;
         break;
       default:
         break;
@@ -160,15 +204,19 @@ export default (carSettings) => {
     stop: () => {
       try {
         buttons.stop();
-      } catch (error) {  }
+      } catch (error) {}
     },
     /**
      *
      * @returns {Buffer}
      */
     latestPacket: () => ecuDataStore.buffer,
-
-    persistantData,
+    persistantData: () => {
+      return {
+        odometer: ecuDataStore.read(DATA_KEYS.ODOMETER),
+        gallonsLeft: gallonsLeft,
+      };
+    },
 
     /**
      * @param {{ ts: number; id: number; data: Uint8Array; ext: boolean; } | false} msg
@@ -178,7 +226,7 @@ export default (carSettings) => {
         // canparsing failure, shutdown
         ecuDataStore.updateWarning(WARNING_KEYS.ECU_COMM, true);
       } else {
-        ecuDataStore.updateWarning(WARNING_KEYS.ECU_COMM, false)
+        ecuDataStore.updateWarning(WARNING_KEYS.ECU_COMM, false);
         decoder.do(msg).forEach((newData) => updateValue(newData));
       }
     },

@@ -22,9 +22,9 @@ export const DATA_KEYS = {
   TARGET_AFR: keygen(),
   AFR_AVERAGE: keygen(),
   IGNITION_TIMING: keygen(),
-  MAP: keygen(),
+  MAP: keygen(), //
   KNOCK_RETARD: keygen(),
-  MAT: keygen(),
+  MAT: keygen(), //manifold temp
   TPS: keygen(),
   BAR_PRESSURE: keygen(),
   CTS: keygen(),

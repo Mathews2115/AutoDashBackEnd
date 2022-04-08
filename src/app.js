@@ -6,6 +6,7 @@ import { appSettingsManager } from './appSettingsManager.js'
 import DashContentWebServer from './webserver.js'
 
 const UPDATE_MS = 33; //frequency  sent up to the dash  30fps (about 60hz)
+const SAVE_FREQ = 5000; // save interval - when to persist data
 
 // websockets config
 const WS_PORT = 3333;
@@ -16,7 +17,7 @@ export default function (canChannel, settings) {
   const dashComms = new DashSocketComms(WS_URL, WS_PORT);
   const gps = new GPSManager(settings.gps);
   const ecu = ecuManager(settings.ecu);
-  const appSettings = appSettingsManager(settings);
+  const appSettings = appSettingsManager();
   const webserver = new DashContentWebServer('dist', 'index.html');
   let updateInterval = null;
   let savingUpdateInterval = null;
@@ -37,8 +38,8 @@ export default function (canChannel, settings) {
 
       //file saving
       savingUpdateInterval = setInterval(() => {
-        appSettings.saveSettings(ecu.persistantData);
-      }, 1000);
+        appSettings.saveSettings(ecu.persistantData());
+      }, SAVE_FREQ);
     } catch (error) {
       onError(error);
     }
