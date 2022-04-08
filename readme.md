@@ -104,7 +104,7 @@ dtoverlay=mcp2515-can0,oscillator=16000000,interrupt=23
 ```
 4. install can util stuff ( do i need dev?)
 ```
-sudo apt-get -y install can-utils libsocketcan2 libsocketcan-dev
+sudo apt -y install can-utils libsocketcan2 libsocketcan-dev
 ```
 5. `sudo nano /etc/network/interfaces`
 6. paste:
@@ -144,7 +144,8 @@ sudo reboot
 3. For now force the 32bit version?
    1. `sudo apt install --no-install-recommends chromium-browser:armhf libwidevinecdm0  --assume-yes`
 * no idea what assume-yes does lol
-3. Now setup chromium with all the hardware enabled crap
+3. `sudo apt install wmctrl` *Only needed if you want dual monitors
+1. Now setup chromium with all the hardware enabled crap
 
 #### Setup chromium and all the needed flags for hardware accelerated kiosk mode
 1. `sudo nano /etc/xdg/openbox/autostart`
@@ -155,9 +156,12 @@ xset s off
 xset s noblank
 xset -dpms
 
-# This is for the ---waveshare--- monitor - since rotation is ignored with the accelerated driver
-xrandr --output HDMI-1 --rotate left
-#DISPLAY=:0 xrandr --output HDMI-1 --rotate left
+# only used if you need dual monitors
+#xrandr --output HDMI-2 --same-as HDMI-1
+#xrandr --output HDMI-1 --panning 800x128+0+0/0x0+0+0/0/0/0/0
+#xrandr --output HDMI-2 --pos 0x400
+xrandr --output HDMI-1 --rotate right
+#xrandr --output HDMI-2 --rotate right
 
 # Allow quitting the X server with CTRL-ATL-Backspace
 setxkbmap -option terminate:ctrl_alt_bksp
@@ -170,7 +174,10 @@ sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]\+"/
 #MESA_EXTENSION_OVERRIDE=-GL_MESA_framebuffer_flip_y chromium-browser --noerrdialogs --disable-infobars --disable-full-history-sync \
 
 chromium-browser --noerrdialogs --disable-infobars --disable-full-history-sync \
---kiosk http:\\localhost:3000
+--kiosk http:\\localhost:3000 &
+sleep 4
+#wmctrl -r Chromium -b remove,fullscreen 
+#wmctrl -r Chromium -e 0,0,-20,1280,800
 ```
 
 #### AutoStart Chromium 
@@ -316,3 +323,9 @@ Monitoring
 ➜  AutoDashBackEnd git:(main) ✗ canplayer vcan0=can0  -I ./can_dumps/candump-racepack-running.log -li
 
 ```
+To run device related commands via SSH:
+```
+DISPLAY=:0 <command like xandr or wmctrl>
+```
+* Pi change log: https://downloads.raspberrypi.org/raspios_armhf/release_notes.txt
+* 
