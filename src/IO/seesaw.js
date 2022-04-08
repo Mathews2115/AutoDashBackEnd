@@ -45,7 +45,7 @@ const _TIMER_FREQ = 0x02;
 const _HW_ID_CODE = 0x55;
 const _EEPROM_I2C_ADDR = 0x3f;
 
-const OFF_LED_LEVEL = 5;
+const OFF_LED_LEVEL = 15;
 
 /**
  * @param {number} x
@@ -191,21 +191,23 @@ export class SeesawSwitch {
       button.pressed = true; // mark button was pressed and begin the debounce timer
       button.debounceTime = performance.now();
     }
-    else if(performance.now() - button.debounceTime > 300) {
+    else if(performance.now() - button.debounceTime > 200) {
       // debounce time has passed - ack button press
       // NOTE: when switching to arm64 (might be a coincidence), button press noise would pop up
       flashTimePassed = 0;
       this.flashingSwitch = null; // stop flashing function
       button.pulsateIncremente += 25;
+      button.debounceTime = 0; // clear out debounce time; signifies the button press was finally ack'd (ruled out noise)
       await this.analogWrite(button.PWM, button.pulsateIncremente);
       this.onButtonAction(button.id, true);
     }
   }
 
   async onReleasedSignal(button) {
-    if (button.debounceTime > 300) {
-      button.pressed = false;
-      button.debounceTime = 0;
+    button.pressed = false;
+
+    // if button debounce time was cleared; that means the button was successfully ackd...so we can ack the depress as well
+    if (button.debounceTime === 0) {
       button.pulsateIncremente = 0;
       await this.analogWrite(button.PWM, OFF_LED_LEVEL);
       this.onButtonAction(button.id, false);
