@@ -7,21 +7,18 @@ import fs from 'fs';
 const CAN_CHANNEL =  process.env.CHANNEL
 const NODE_ENV = process.env.NODE_ENV
 
-
 try {
   const settings = yaml.load(fs.readFileSync('./settings.yaml', 'utf8'));
   const dashServer = app(CAN_CHANNEL, settings);
+
   // Development or Live (starts webserver if live)
   // const APP_TYPE = process.env.TYPE || dashServer.TYPES.DEVELOPMENT
 
-  process.on('beforeExit', (code) => {
-    console.log('Process beforeExit event with code: ', code);
+  const stopAll = () => {
     dashServer.stop();
-  });
-  process.on('exit', (code) => {
-    console.log(`About to exit with code: ${code}`);
-  });
-
+  }
+  process.on('SIGTERM', stopAll)
+  process.on('SIGINT', stopAll)
   dashServer.start();
 } catch (e) {
   console.log(e);
