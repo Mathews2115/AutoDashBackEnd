@@ -50,7 +50,7 @@ export default (carSettings) => {
    * @param {Number} lastSavedReading - last saved odometer reading
    */
   const initializeOdometer = (lastSavedReading) => {
-    baseOdometerReading = lastSavedReading || carSettings.ecu.odometer;
+    baseOdometerReading = lastSavedReading || carSettings.odometer;
     ecuDataStore.write(DATA_KEYS.ODOMETER, baseOdometerReading);
   };
 
