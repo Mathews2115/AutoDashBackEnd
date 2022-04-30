@@ -62,10 +62,6 @@ export default (carSettings) => {
     initializeFuel(gallonsLeft);
     initializeOdometer(odometer);
 
-    ecuDataStore.write(
-      DATA_KEYS.LOW_LIGHT_DETECTED, 1
-    )
-
     msSample = performance.now();
     lastMpgSampleTime = performance.now();
   };
