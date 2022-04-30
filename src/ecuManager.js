@@ -11,7 +11,10 @@ export default (carSettings) => {
   let buttons = new ButtonManager([
     // fuel reset button
     {
-      onReleased: () => ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 100),
+      onReleased: () => {
+        gallonsLeft = carSettings.tank_size
+        ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 100)
+      },
       holdNeeded: true,
     },
     {
@@ -58,6 +61,10 @@ export default (carSettings) => {
     buttons.start(); // start listening for button presses
     initializeFuel(gallonsLeft);
     initializeOdometer(odometer);
+
+    ecuDataStore.write(
+      DATA_KEYS.LOW_LIGHT_DETECTED, 1
+    )
 
     msSample = performance.now();
     lastMpgSampleTime = performance.now();
