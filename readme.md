@@ -143,10 +143,6 @@ sudo reboot
 #### Install x11 xserver and Chromium
 1. `sudo apt install --no-install-recommends xserver-xorg x11-xserver-utils xinit openbox --assume-yes`
 2. `sudo apt install --no-install-recommends chromium-browser --assume-yes`
-3. For now force the 32bit version?
-   1. `sudo apt install --no-install-recommends chromium-browser:armhf libwidevinecdm0  --assume-yes`
-* no idea what assume-yes does lol
-3. `sudo apt install wmctrl` *Only needed if you want dual monitors
 1. Now setup chromium with all the hardware enabled crap
 
 #### Setup chromium and all the needed flags for hardware accelerated kiosk mode
@@ -158,12 +154,12 @@ xset s off
 xset s noblank
 xset -dpms
 
-# only used if you need dual monitors
-#xrandr --output HDMI-2 --same-as HDMI-1
-#xrandr --output HDMI-1 --panning 800x128+0+0/0x0+0+0/0/0/0/0
-#xrandr --output HDMI-2 --pos 0x400
 xrandr --output HDMI-1 --rotate right
 #xrandr --output HDMI-2 --rotate right
+#xrandr --output HDMI-2 --same-as HDMI-1
+#xrandr --output HDMI-1 --panning 1280x1280+0+0/0x0+0+0/0/0/0/0
+#xrandr --output HDMI-1 --fb 1280x800
+#xrandr --output HDMI-2 --pos 0x400
 
 # Allow quitting the X server with CTRL-ATL-Backspace
 setxkbmap -option terminate:ctrl_alt_bksp
@@ -175,11 +171,8 @@ sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]\+"/
 # IF THE WEBGL DISPLAY IS FLIPPED: use this line (from here https://forums.raspberrypi.com/viewtopic.php?f=91&t=274315 )
 #MESA_EXTENSION_OVERRIDE=-GL_MESA_framebuffer_flip_y chromium-browser --noerrdialogs --disable-infobars --disable-full-history-sync \
 
-chromium-browser --noerrdialogs --disable-infobars --disable-full-history-sync \
---kiosk http:\\localhost:3000 &
-sleep 4
-#wmctrl -r Chromium -b remove,fullscreen 
-#wmctrl -r Chromium -e 0,0,-20,1280,800
+chromium-browser --window-position=0,0 --user-data-dir="/home/pi/Documents/Profiles/0" --noerrdialogs --disable-infobars --disable-full-history-sync \
+--kiosk http:\\localhost:3000 
 ```
 
 #### AutoStart Chromium 
@@ -326,8 +319,10 @@ Monitoring
 
 ```
 To run device related commands via SSH:
+`DISPLAY=:0 <command like xandr or wmctrl>`
+* two separate windows
 ```
-DISPLAY=:0 <command like xandr or wmctrl>
+chromium-browser --window-position=0,0 --user-data-dir="/home/pi/Documents/Profiles/0" --noerrdialogs --disable-infobars --disable-full-history-sync  --kiosk http:\\localhost:3000 --enable-features=CanvasOop>
+51 chromium-browser --window-position=0,400 --user-data-dir="/home/pi/Documents/Profiles/1" --noerrdialogs --disable-infobars --disable-full-history-sync  --kiosk http:\\localhost:3000 --enable-features=CanvasO>
+52 
 ```
-* Pi change log: https://downloads.raspberrypi.org/raspios_armhf/release_notes.txt
-* 

@@ -66,7 +66,7 @@ export default (carSettings) => {
   const updateFuelLeft = () => {
     ecuDataStore.write(
       DATA_KEYS.FUEL_LEVEL,
-      Math.ceil((gallonsLeft / carSettings.tank_size) * 100)
+      Math.max(0, Math.ceil((gallonsLeft / carSettings.tank_size) * 100))
     );
   }
 
@@ -81,8 +81,7 @@ export default (carSettings) => {
         const gpMs = (data * 0.1621) / 3600000; // convert from pounds/hour to gal/hour, then to to gal/millisecond
         const pMin = Math.min(lastFuelSample, gpMs);
         const gallonsConsumed =
-          (msDelta * (Math.max(lastFuelSample, gpMs) - pMin)) / 2 +
-          msDelta * pMin;
+          (msDelta * (Math.max(lastFuelSample, gpMs) - pMin)) / 2 +  msDelta * pMin;
 
         // update the fuel level
         gallonsLeft -= gallonsConsumed;
