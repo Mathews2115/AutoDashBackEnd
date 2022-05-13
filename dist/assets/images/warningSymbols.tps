@@ -56,7 +56,7 @@
         <key>jxrCompressionLevel</key>
         <uint>0</uint>
         <key>ditherType</key>
-        <enum type="SettingsBase::DitherType">PngQuantLow</enum>
+        <enum type="SettingsBase::DitherType">PngQuantMedium</enum>
         <key>backgroundColor</key>
         <uint>0</uint>
         <key>libGdx</key>
@@ -272,6 +272,21 @@
                 <key>scale9FromFile</key>
                 <false/>
             </struct>
+            <key type="filename">tempair.png</key>
+            <struct type="IndividualSpriteSettings">
+                <key>pivotPoint</key>
+                <point_f>0,0</point_f>
+                <key>spriteScale</key>
+                <double>1</double>
+                <key>scale9Enabled</key>
+                <false/>
+                <key>scale9Borders</key>
+                <rect>19,17,37,33</rect>
+                <key>scale9Paddings</key>
+                <rect>19,17,37,33</rect>
+                <key>scale9FromFile</key>
+                <false/>
+            </struct>
             <key type="filename">warning.png</key>
             <struct type="IndividualSpriteSettings">
                 <key>pivotPoint</key>
@@ -298,6 +313,7 @@
             <filename>temp.png</filename>
             <filename>warning.png</filename>
             <filename>fuel_inverse.png</filename>
+            <filename>tempair.png</filename>
         </array>
         <key>ignoreFileList</key>
         <array/>

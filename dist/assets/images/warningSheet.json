@@ -11,7 +11,7 @@
 },
 "fuel.png":
 {
-	"frame": {"x":73,"y":39,"w":35,"h":38},
+	"frame": {"x":2,"y":79,"w":35,"h":38},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":35,"h":38},
@@ -20,7 +20,7 @@
 },
 "fuel_inverse.png":
 {
-	"frame": {"x":2,"y":79,"w":35,"h":38},
+	"frame": {"x":39,"y":79,"w":35,"h":38},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":35,"h":38},
@@ -63,9 +63,18 @@
 	"sourceSize": {"w":38,"h":34},
 	"anchor": {"x":0.5,"y":0.5}
 },
+"tempair.png":
+{
+	"frame": {"x":73,"y":39,"w":38,"h":34},
+	"rotated": false,
+	"trimmed": false,
+	"spriteSourceSize": {"x":0,"y":0,"w":38,"h":34},
+	"sourceSize": {"w":38,"h":34},
+	"anchor": {"x":0,"y":0}
+},
 "warning.png":
 {
-	"frame": {"x":39,"y":79,"w":36,"h":38},
+	"frame": {"x":76,"y":79,"w":36,"h":38},
 	"rotated": false,
 	"trimmed": false,
 	"spriteSourceSize": {"x":0,"y":0,"w":36,"h":38},
@@ -77,8 +86,8 @@
 	"version": "1.0",
 	"image": "warningSheet.png",
 	"format": "ALPHA",
-	"size": {"w":111,"h":119},
+	"size": {"w":114,"h":119},
 	"scale": "0.5",
-	"smartupdate": "$TexturePacker:SmartUpdate:abeb30ecdefc7975872c1aa84bb453c2:a54b10a97a5f0d630baae8c5ea3089a7:947400244a66c71c1f6d58a110fa6c60$"
+	"smartupdate": "$TexturePacker:SmartUpdate:6134ed02a7d6842f6a407b4d3ccfa10a:0879ff7e0b6a3d2f4a942f8e8b35fefe:947400244a66c71c1f6d58a110fa6c60$"
 }
 }
