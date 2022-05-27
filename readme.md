@@ -4,6 +4,8 @@
 ![PXL_20210808_010642720](https://user-images.githubusercontent.com/6019208/137767684-6434229c-4fc2-47d6-8813-407d13573b93.jpg)
 # This is the backend of the [Racepak/Holley Auto Digital Dash](https://github.com/Mathews2115/AutoDashFrontEnd). This pairs with the AutoDashFrontEnd
 **WARNING - BUILDING THIS WHILE WE ARE FLYING - EXPECT MASSIVE STUPID CHANGES ON A WHIM**
+## Check out this boilerplate dash
+* https://github.com/Mathews2115/AutoDashFrontEndBoilerPlate - Feel free to clone this and make your own - it is a simple Tach display with no more bells or whistles
 
 ## Why?
 My personal Digital Dash project for a heavily modified 1972 Ford LTD - communicating via CAN with a Holley EFI ECU and other goodies my car needs such as GPS speedo, fuel tank remaining estimation and whatever the heck else I'm gonna start throwing at it in the future.
