@@ -218,6 +218,9 @@ node -v
 * yarn.lock.rpi - 32 Bit version of raspi 
 * yarn.lock.rpi_64 - x64 version of raspi <- current for raspberry pi 4
 
+## Setup CAN on the PI
+* Setup the PI to automatically start server (read from CAN, not VCAN) `RPI_system/prepare_preduction.sh`
+
 ## Simulate CAN in dev on the Pi
 1. Start Dev CAN service `RPI_system/prepare_dev.sh`
    1. see that file to configure what canfile to run
