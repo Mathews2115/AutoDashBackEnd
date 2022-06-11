@@ -6,9 +6,14 @@ import { SeesawSwitch } from './seesaw.js';
 // with a led connected as well
 export default class Buttons {
   constructor(buttons) {
-    if (os.hostname() === 'raspberrypi') {
-      this.devices = new SeesawSwitch();
+    try {
+      if (os.hostname() === 'raspberrypi') {
+        this.devices = new SeesawSwitch();
+      }
+    } catch (error) {
+      console.error("AutoDash ignoring seesaw" ,error);
     }
+
     this.buttons = [];
     // seesawswitch has spots for 4 switches
     // TODO: make this work on all four switches; it just works on #1 right now

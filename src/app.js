@@ -24,11 +24,19 @@ export default function (canChannel, settings) {
 
   const startApp = () => {
     try {
+      // start conosole message
+      console.log("AutoDash:-----------STARTING AUTODASH-------------")
       const persistantData = appSettings.init();
       ecu.init(persistantData);
       dashComms.start();
       canComms.start(ecu.updateFromCanBus);
-      gps.start(ecu.updateFromGPS);
+      
+      if (settings.gps.enabled) {
+        gps.start(ecu.updateFromGPS);
+      } else {
+        console.log('AutoDash: GPS disabled');
+      }
+
       webserver.start();
       
       // Frontend update 
@@ -37,9 +45,13 @@ export default function (canChannel, settings) {
       }, UPDATE_MS);
 
       //file saving
-      savingUpdateInterval = setInterval(() => {
-        appSettings.saveSettings(ecu.persistantData());
-      }, SAVE_FREQ);
+      if (settings.ecu.persist) {
+        savingUpdateInterval = setInterval(() => {
+          appSettings.saveSettings(ecu.persistantData());
+        }, SAVE_FREQ);
+      } else {
+        console.log('AutoDash: No persisting data');
+      }
     } catch (error) {
       onError(error);
     }
@@ -70,7 +82,7 @@ export default function (canChannel, settings) {
     if (canComms && canComms.started) canComms.stop();
     if (gps && gps.started) gps.stop();
     ecu.stop();
-    console.log(" -------- STOPPED   -------------");
+    console.log("AutoDash: -------- STOPPED   -------------");
   }
   
   const app =  {

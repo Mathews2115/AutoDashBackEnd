@@ -39,8 +39,8 @@ class DashContentWebServer {
       let bind = typeof addr === 'string'
         ? 'pipe ' + addr
         : 'port ' + addr.port;
-        console.log('Listening on ' + bind);
-        console.log('!! ----------- WEB-SERVER Ready ----------- !!');
+        console.log('AutoDash: Webserver is listening on ' + bind);
+        console.log('AutoDash: !! ----------- WEB-SERVER Ready ----------- !!');
     });
   }
 
