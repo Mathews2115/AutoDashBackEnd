@@ -124,6 +124,7 @@ iface can0 inet manual
 
 ## Safe Shutdown / Battery Backup
 Don't bother doing any of this if you dont have the hat hooked up - it will cause issues on bootup.
+ALSO - dont bother doing this if you dont care about safe shutdown or have the Pi in readonly.
 ### Setup Geekworm x728 UPS script
 When the power is cut to the RPI, we want it to auto shutdown safely in about 30 seconds of sustained no power.
 
