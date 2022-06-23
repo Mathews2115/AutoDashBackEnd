@@ -4,11 +4,11 @@ gps:
   vendor_id: '1546'
 ecu: 
   persist: false # persist data like fuel left, etc - turn this on if you know what you are doing (and things are  implemented)
-  can_type: 'an400' #racepak or an400
+  can_type: 'racepak' #racepak or an400
   odometer: 16813 #base
   tank_size: 17 # gal - only used if FUEL_FLOW is used and persist: is true
   oil_low_limit: 15 # psi
   voltage_low_limit: 11.8 #volts
-  engine_temp_high: 240 # F degrees
+  engine_temp_high: 250 # F degrees
   buttons_enabled: false
  
