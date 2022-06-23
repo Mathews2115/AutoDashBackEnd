@@ -11,23 +11,23 @@ class DashSocketComms {
 
     this.open = (ws) => {
       this.sockets.push(ws);
-      console.log('A WebSocket connected!');
+      console.log('AutoDash: A dash has been found - A WebSocket connected!');
       ws.subscribe('#'); // just subscribe to everything for now; ill boost this up at some point
     };
     this.message = (ws, message, isBinary) => {
-      console.log('WebSocket message received from dash', message);
+      // console.log('WebSocket message received from dash', message);
       /* Ok is false if backpressure was built up, wait for drain */
       // let ok = ws.send(message, isBinary);
     };
     this.drain = (ws) => {
-      console.log(`WebSocket backpressure: ${ws.getBufferedAmount()}`);
+      // console.log(`WebSocket backpressure: ${ws.getBufferedAmount()}`);
     };
     this.close = (ws, code, message) => {
       const i = this.sockets.findIndex(s => s === ws);
       if (i >= 0) {
         this.sockets.splice(i, 1);
       }
-      console.log('A WebSocket disconnected!');
+      console.log('AutoDash: someone disconnected!');
     };
 
     this.uWSApp = uWS.App({}).ws('/*', {
@@ -63,9 +63,9 @@ class DashSocketComms {
     this.uWSApp.listen(this.port, (token) => {
       if (token) {
         this.listenSocket = token;
-        console.log(`Listening to port ${this.port}`);
+        console.log(`AutoDash: Listening to port ${this.port}`);
       } else {
-        console.log(`Failed to listen to port ${this.port}`);
+        console.log(`AutoDash: !!!FAILED to listen to port ${this.port}`);
       }
     });
   }

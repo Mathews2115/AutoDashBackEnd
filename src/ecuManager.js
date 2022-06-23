@@ -1,11 +1,10 @@
 import { performance } from "perf_hooks";
 import racePackDecoder from "./CAN/racepakDecoder.js";
+import an400Decoder from "./CAN/an400Decorder.js";
 import { DATA_KEYS, WARNING_KEYS } from "./dataKeys.js";
 import DataStore from "./DataStore.js";
 import RingBuffer from "./lib/ringBuffer.js";
 import ButtonManager from "./IO/Buttons.js";
-
-const decoder = racePackDecoder; // alias
 
 export default (carSettings) => {
   let buttons = new ButtonManager([
@@ -36,6 +35,9 @@ export default (carSettings) => {
   const mpgSampler = new RingBuffer(Buffer.alloc(1024));
   let gallonsLeft = 0;
 
+  // assign decoder - currently this was designed for racepak but we have LOOSE support for an400 stuff
+  const decoder = carSettings.can_type === "an400" ? an400Decoder : racePackDecoder;
+
   /**
    * Initialize Fuel Readings - get the last known gallons left
    * @param {Number} persistedGallonsLeft
@@ -45,6 +47,8 @@ export default (carSettings) => {
     ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 0);
     ecuDataStore.write(DATA_KEYS.AVERAGE_MPG, 0);
     ecuDataStore.write(DATA_KEYS.CURRENT_MPG, 0);
+    ecuDataStore.write(DATA_KEYS.TEMP_TYPE, 0); // default to F
+    ecuDataStore.write(DATA_KEYS.PRESSURE_TYPE, 1); // default to kpa (used for MAP) / /make sure you front end gets what it expects!
     updateFuelLeft();
   };
 
@@ -58,7 +62,9 @@ export default (carSettings) => {
   };
 
   const init = ({ gallonsLeft, odometer }) => {
-    buttons.start(); // start listening for button presses
+    if (carSettings.buttons_enabled) {
+      buttons.start(); // start listening for button presses
+    }
     initializeFuel(gallonsLeft);
     initializeOdometer(odometer);
 

@@ -111,7 +111,7 @@ dtoverlay=mcp2515-can0,oscillator=16000000,interrupt=23
 sudo apt -y install can-utils libsocketcan2 libsocketcan-dev
 ```
 5. `sudo nano /etc/network/interfaces`
-6. paste:
+6. THIS IS IMPORTANT - FOUND OUT THE REQUIRE BITSPEED  - THIS ONE IS SETTING IT TO 1000k: - paste the below
 ```
 auto can0
 iface can0 inet manual
@@ -275,7 +275,13 @@ disable_touchscreen=1
 
 
 # CAN Protocol
-## Holley / NHRA
+1. Only supports two protocols currently, Racepak and PE3
+2. make sure to specify the protocol in the settings.yaml file
+
+## PE3
+* [Protocol](https://pe-ltd.com/assets/AN400_CAN_Protocol_C.pdf)
+* CAN data rate is 250kbps
+## Holley / Racepak / NHRA
 
 ### General Decoding Info
 * Found [here](http://www.nhraracer.com/Files/Tech/NHRA_EFI_Specifications_Rev8.pdf) towards the bottom

@@ -45,6 +45,9 @@ export default class DataStore {
           this.packetKeys[DATA_KEYS.AVERAGE_MPG_POINTS].byteLength
       )
     );
+
+    this.packetKeys[DATA_KEYS.PRESSURE_TYPE] = new PacketEntry(TYPES.ONE_BYTE);
+    this.packetKeys[DATA_KEYS.TEMP_TYPE] = new PacketEntry(TYPES.ONE_BYTE);
   }
 
   write(key, value) {
