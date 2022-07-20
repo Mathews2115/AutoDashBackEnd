@@ -7,6 +7,7 @@ import DashContentWebServer from './webserver.js'
 
 const UPDATE_MS = 33; //frequency  sent up to the dash  30fps (about 60hz)
 const SAVE_FREQ = 5000; // save interval - when to persist data
+let stopping = false;
 
 // websockets config
 const WS_PORT = 3333;
@@ -67,6 +68,8 @@ export default function (canChannel, settings) {
   }
 
   const stopApp = () => {
+    if (stopping) return;
+    stopping = true;
     if (updateInterval) {
       clearInterval(updateInterval);
     }
@@ -82,6 +85,7 @@ export default function (canChannel, settings) {
     if (canComms && canComms.started) canComms.stop();
     if (gps && gps.started) gps.stop();
     ecu.stop();
+    webserver.stop();
     console.log("AutoDash: -------- STOPPED   -------------");
   }
   

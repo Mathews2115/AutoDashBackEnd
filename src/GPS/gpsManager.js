@@ -36,14 +36,14 @@ class GPSManager {
   }
 
   error(err) {
-    console.log(err);
+    console.log("GPSManager:", err);
 
     if (err) {
       this.onUpdateCallback(false);
 
       // if connected before, attempt to reconnect ... FOREVER
-      if (this.port && !this.tryingToOpenInterval) {
-        this.tryingToOpenInterval = setInterval(() => {
+      if (this.started && this.port && !this.tryingToOpenTimeout) {
+        this.tryingToOpenTimeout = setTimeout(() => {
           this.open();
         }, 1000);
       }
@@ -51,15 +51,13 @@ class GPSManager {
   }
 
   open() {
-    if (this.tryingToOpenInterval) {
-      clearInterval(this.tryingToOpenInterval);
-      this.tryingToOpenInterval = null;
+    if (this.tryingToOpenTimeout) {
+      clearTimeout(this.tryingToOpenTimeout);
+      this.tryingToOpenTimeout = null;
     }
     this.port.open((err) => {
       const error = !!err;
-      if (!error) {
-        this.started = true;
-      } else {
+      if (error) {
         this.error(err);
       }
     });
@@ -136,11 +134,11 @@ class GPSManager {
   }
 
   stop() {
+    this.started = false; // turn this off, so no reconnect attempts occur
     if (this.port && this.port.isOpen) {
       this.port.close();
-      this.port = null;
     }
-    this.started = false;
+    this.port = null;
   }
 }
 

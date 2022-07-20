@@ -75,6 +75,7 @@ class DashSocketComms {
     if (this.listenSocket) {
       uWS.us_listen_socket_close(this.listenSocket);
       this.listenSocket = null;
+      console.log("AutoDash closing websocket");
     }
   }
 }
