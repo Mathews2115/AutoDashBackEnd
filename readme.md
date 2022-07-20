@@ -1,3 +1,5 @@
+# July 19 2022 - UPDATE INCOMING, removing all the geekworm ups/battery stuff in favor of a much more managable relay system for a proper shutdown
+
 # Raspberry Pi (4) Digital Dash Server
 ![image](https://user-images.githubusercontent.com/6019208/158074757-72e16536-0025-4e04-b4dd-5dfbb27600c9.png)
 
