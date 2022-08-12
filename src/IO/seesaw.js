@@ -96,6 +96,7 @@ export class SeesawSwitch {
     await this.setPinMode(SWITCH4);
     await this.analogWrite(PWM1,OFF_LED_LEVEL);
     await this.analogWrite(PWM2,OFF_LED_LEVEL);
+    await this.analogWrite(PWM3,OFF_LED_LEVEL);
   }
 
   /**
@@ -138,8 +139,8 @@ export class SeesawSwitch {
     return [
       this.getSwitchState(SWITCH1),
       this.getSwitchState(SWITCH2),
-      // this.getSwitchState(SWITCH3),
-      // this.getSwitchState(SWITCH4),
+      this.getSwitchState(SWITCH3),
+      this.getSwitchState(SWITCH4),
     ]
   }
   /**

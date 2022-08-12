@@ -1,5 +1,6 @@
 import os from 'os';
 import { performance } from 'perf_hooks';
+import isPi from './isPi.js';
 import { SeesawSwitch } from './seesaw.js';
 
 //  momentary swtich that is connected to a GPIO pin.
@@ -7,7 +8,7 @@ import { SeesawSwitch } from './seesaw.js';
 export default class Buttons {
   constructor(buttons) {
     try {
-      if (os.hostname() === 'raspberrypi') {
+      if (isPi()) {
         this.devices = new SeesawSwitch();
       }
     } catch (error) {
@@ -63,8 +64,7 @@ export default class Buttons {
     if (button.pressed) {
       if (!button.holdNeeded) {
         button.onReleased();
-      }
-      else if (performance.now() - button.pressedSince > 3000) {
+      } else if (performance.now() - button.pressedSince > 2000) {
         this.devices.flashSwitch();
         button.onReleased();
       }

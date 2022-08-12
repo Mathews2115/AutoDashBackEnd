@@ -36,7 +36,6 @@ This is the compnent that gets installed on the raspberry Pi. It will run a Node
 * 3.0+ USB flash drive (optional)
 * [Waveshare dual CAN hat](https://www.waveshare.com/wiki/2-CH_CAN_HAT) - CAN data from Holley ECU
 * [Geekworm x715 Power/Fan](https://wiki.geekworm.com/X715_Software) - for 12-40v input to 5v output conversion
-* [Geekworm x728 UPS](https://wiki.geekworm.com/X728-Software) - For safe shutdown/battery backup
 * [SparkFun GPS - NEO-M8U](https://www.sparkfun.com/products/16329) - Speedo and odometer
 * Buttons / LEDS (optional)
   * A momentary switch to reset the fuel readings (because my fuel sender is non functional) (optional obviously)
@@ -99,21 +98,31 @@ The boot code delay is so the monitor has time to fully power on (if powered by 
 
 ## CAN Handling
 Don't bother doing any of this if you dont have the hat hooked up - it will cause issues on bootup - like no wifi
-### Setup WaveShare Dual CAN hat
-https://www.waveshare.com/wiki/2-CH_CAN_HAT
 1. `sudo nano /boot/config.txt`
 2.  uncomment `dtparam=spi=on`
 3.  add below:
+
+### PICAN2/3 CAN Hat
+```
+dtoverlay=mcp2515-can0,oscillator=16000000,interrupt=25
+dtoverlay=spi-bcm2835-overlay
+```
+
+### Setup WaveShare Dual CAN hat
+https://www.waveshare.com/wiki/2-CH_CAN_HAT
+
 ```
 dtoverlay=mcp2515-can1,oscillator=16000000,interrupt=25
 dtoverlay=mcp2515-can0,oscillator=16000000,interrupt=23
 ```
-4. install can util stuff ( do i need dev?)
+### CAN Software/Drivers
 ```
 sudo apt -y install can-utils libsocketcan2 libsocketcan-dev
 ```
-5. `sudo nano /etc/network/interfaces`
-6. THIS IS IMPORTANT - FOUND OUT THE REQUIRE BITSPEED  - THIS ONE IS SETTING IT TO 1000k: - paste the below
+
+### Raising the CAN interface
+1. `sudo nano /etc/network/interfaces`
+2. THIS IS IMPORTANT - FOUND OUT THE REQUIRE BITSPEED  - THIS ONE IS SETTING IT TO 1000k: - paste the below
 ```
 auto can0
 iface can0 inet manual
@@ -125,24 +134,9 @@ iface can0 inet manual
 7. `sudo reboot`
 
 ## Safe Shutdown / Battery Backup
-Don't bother doing any of this if you dont have the hat hooked up - it will cause issues on bootup.
-ALSO - dont bother doing this if you dont care about safe shutdown or have the Pi in readonly.
-### Setup Geekworm x728 UPS script
-When the power is cut to the RPI, we want it to auto shutdown safely in about 30 seconds of sustained no power.
+IMPORTANT - implement a way for your pi to shutdown safely - else make sure you put it in read only mode
 
-1. make sure I2C is enabled (`sudo raspi-config`)
-2. Enable the ds1307 overlay: add ds1307 to the dtoverlay line ex. dtoverlay=vc4-fkms-v3d,ds1307 
-3. Do the following
-```
-cd ~
-sudo apt install git
-git clone https://github.com/Mathews2115/x728-Monitor.git
-cd x728-Monitor
-chmod +x *.sh
-sudo ./setup.sh
-sudo reboot
-```
-
+## Chromium
 ### Install Chromium in Kiosk Mode
 
 #### Install x11 xserver and Chromium

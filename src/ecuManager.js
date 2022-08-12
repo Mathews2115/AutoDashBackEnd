@@ -5,8 +5,9 @@ import { DATA_KEYS, WARNING_KEYS } from "./dataKeys.js";
 import DataStore from "./DataStore.js";
 import RingBuffer from "./lib/ringBuffer.js";
 import ButtonManager from "./IO/Buttons.js";
+import piShutdown from "./IO/piShutdown.js";
 
-export default (carSettings) => {
+export default (carSettings, canChannel) => {
   let buttons = new ButtonManager([
     // fuel reset button
     {
@@ -23,6 +24,20 @@ export default (carSettings) => {
           DATA_KEYS.LOW_LIGHT_DETECTED,
           ecuDataStore.read(DATA_KEYS.LOW_LIGHT_DETECTED) ? 0 : 1
         ),
+      holdNeeded: false,
+    },
+    {
+      // Manual Power Toggle
+      onPressed: () => {
+      },
+      holdNeeded: true,
+    },
+    {
+      // relay toggle - n
+      onPressed: () => {
+      },
+      onReleased: () => {
+      },
       holdNeeded: false,
     },
   ]);
@@ -65,7 +80,7 @@ export default (carSettings) => {
     if (carSettings.buttons_enabled) {
       buttons.start(); // start listening for button presses
     }
-    initializeFuel(gallonsLeft);
+    initializeFuel(gallonsLeft || carSettings.tank_size);
     initializeOdometer(odometer);
 
     msSample = performance.now();
@@ -73,10 +88,12 @@ export default (carSettings) => {
   };
 
   const updateFuelLeft = () => {
-    ecuDataStore.write(
-      DATA_KEYS.FUEL_LEVEL,
-      Math.max(0, Math.ceil((gallonsLeft / carSettings.tank_size) * 100))
-    );
+    if (carSettings.fuel_level_enabled) {
+      ecuDataStore.write(
+        DATA_KEYS.FUEL_LEVEL,
+        Math.max(0, Math.ceil((gallonsLeft / carSettings.tank_size) * 100))
+      );
+    }
   }
 
   const updateValue = ({ id, data }) => {
@@ -169,7 +186,7 @@ export default (carSettings) => {
   /**
    * if error, turns GPS error flag on
    * else updates GPS data
-   * Returns updater callback to be used next time
+   * Returns updater callback to be on next update
    * @returns {Function}
    */
   const gpsUpdate = (msg) => {
@@ -183,7 +200,7 @@ export default (carSettings) => {
 
   /**
    * turns off GPS error; updates GPS data
-   * Returns updater callback to be used next time
+   * RReturns updater callback to be on next update
    * @returns {Function}
    */
   const gpsUpdateStateToWorking = (msg) => {
@@ -196,7 +213,7 @@ export default (carSettings) => {
 
   /**
    * Turns GPS error on
-   * Returns updater callback to be used next time
+   * Returns updater callback to be on next update
    * @returns {Function}
    */
   const gpsUpdateStateToBroked = (msg) => {
@@ -206,6 +223,40 @@ export default (carSettings) => {
 
   /** @type {Function} */
   let gpsUpdater = gpsUpdate;
+
+  const canUpdate = (msg) => {
+    if (msg === false) {
+      // canparsing failure, shutdown
+      return canUpdateToError();
+    } else {
+      decoder.do(msg).forEach((newData) => updateValue(newData));
+      return canUpdate;
+    }
+  };
+
+  // turns on CAN error, initiate shutdown
+  const canUpdateToError = () => {
+    if (canChannel == 'can0') piShutdown.start(); // dont shutdown if we are stesting stuff
+    ecuDataStore.updateWarning(WARNING_KEYS.ECU_COMM, true);
+    return canUpdateErrorState;
+  };
+
+  // check if we have can message, if so, return back to normal state
+  const canUpdateErrorState = (msg) => {
+    if (msg) {
+      piShutdown.stop();
+      ecuDataStore.updateWarning(WARNING_KEYS.ECU_COMM, false);
+      return canUpdate(msg);
+    }
+    return canUpdateErrorState;
+  }
+
+  /** 
+   * Called when there is an update from the Can Manager (msg or can failure)
+   * @type {Function} 
+   * @returns {Function} - the updater function to call next (state machine)
+  */
+  let canUpdater = canUpdate;
 
   const ecu = {
     init,
@@ -230,13 +281,7 @@ export default (carSettings) => {
      * @param {{ ts: number; id: number; data: Uint8Array; ext: boolean; } | false} msg
      */
     updateFromCanBus: (msg) => {
-      if (msg === false) {
-        // canparsing failure, shutdown
-        ecuDataStore.updateWarning(WARNING_KEYS.ECU_COMM, true);
-      } else {
-        ecuDataStore.updateWarning(WARNING_KEYS.ECU_COMM, false);
-        decoder.do(msg).forEach((newData) => updateValue(newData));
-      }
+      canUpdater = canUpdater(msg);
     },
 
     // Updates GPS data, if error, will turn error off on next successful update

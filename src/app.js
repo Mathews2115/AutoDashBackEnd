@@ -17,7 +17,7 @@ export default function (canChannel, settings) {
   const canComms = new CanbusManager(canChannel);
   const dashComms = new DashSocketComms(WS_URL, WS_PORT);
   const gps = new GPSManager(settings.gps);
-  const ecu = ecuManager(settings.ecu);
+  const ecu = ecuManager(settings.ecu, canChannel);
   const appSettings = appSettingsManager();
   const webserver = new DashContentWebServer('dist', 'index.html');
   let updateInterval = null;
