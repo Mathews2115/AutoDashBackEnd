@@ -59,6 +59,7 @@ export default (carSettings, canChannel) => {
    */
   const initializeFuel = (persistedGallonsLeft) => {
     gallonsLeft = persistedGallonsLeft;
+    ecuDataStore.updateWarning(WARNING_KEYS.ECU_COMM, true);
     ecuDataStore.write(DATA_KEYS.FUEL_LEVEL, 0);
     ecuDataStore.write(DATA_KEYS.AVERAGE_MPG, 0);
     ecuDataStore.write(DATA_KEYS.CURRENT_MPG, 0);
@@ -253,10 +254,11 @@ export default (carSettings, canChannel) => {
 
   /** 
    * Called when there is an update from the Can Manager (msg or can failure)
+   * start out in error state - so it doesnt trigger shutdown right off that bat (useful when testing)
    * @type {Function} 
    * @returns {Function} - the updater function to call next (state machine)
   */
-  let canUpdater = canUpdate;
+  let canUpdater = canUpdateErrorState;
 
   const ecu = {
     init,
