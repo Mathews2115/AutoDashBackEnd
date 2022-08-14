@@ -13,10 +13,10 @@ object-assign
  */
 
 /*!
- * @pixi/compressed-textures - v6.3.0
+ * @pixi/app - v6.3.0
  * Compiled Wed, 23 Mar 2022 18:58:56 UTC
  *
- * @pixi/compressed-textures is licensed under the MIT License.
+ * @pixi/app is licensed under the MIT License.
  * http://www.opensource.org/licenses/mit-license
  */
 
@@ -85,14 +85,6 @@ object-assign
  */
 
 /*!
- * @pixi/loaders - v6.3.0
- * Compiled Wed, 23 Mar 2022 18:58:56 UTC
- *
- * @pixi/loaders is licensed under the MIT License.
- * http://www.opensource.org/licenses/mit-license
- */
-
-/*!
  * @pixi/math - v6.3.0
  * Compiled Wed, 23 Mar 2022 18:58:56 UTC
  *
@@ -141,18 +133,18 @@ object-assign
  */
 
 /*!
- * @pixi/runner - v6.3.0
- * Compiled Wed, 23 Mar 2022 18:58:56 UTC
- *
- * @pixi/runner is licensed under the MIT License.
- * http://www.opensource.org/licenses/mit-license
- */
-
-/*!
  * @pixi/ticker - v6.3.0
  * Compiled Wed, 23 Mar 2022 18:58:56 UTC
  *
  * @pixi/ticker is licensed under the MIT License.
+ * http://www.opensource.org/licenses/mit-license
+ */
+
+/*!
+ * @pixi/utils - v6.3.0
+ * Compiled Wed, 23 Mar 2022 18:58:56 UTC
+ *
+ * @pixi/utils is licensed under the MIT License.
  * http://www.opensource.org/licenses/mit-license
  */
 
