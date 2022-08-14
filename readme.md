@@ -304,6 +304,7 @@ Monitor data is continuously broadcast by the HEFI.
 
 # GPS
 If you can, try to configure your GPS chip to only send the required messages.  In my instance, since I am using USB, I turned off all messages for other protocols (I2C, SPI, etc).   I also only enabled `NAV-ODO`, and  `HNR-PVT` messages.
+* make sure settings.yaml, GPS settings are turned on if you require GPS functionality
 
 # Cheatsheets
 * log file of service
