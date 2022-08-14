@@ -1,5 +1,3 @@
-# July 19 2022 - UPDATE INCOMING, removing all the geekworm ups/battery stuff in favor of a much more managable relay system for a proper shutdown
-
 # Raspberry Pi (4) Digital Dash Server
 ![image](https://user-images.githubusercontent.com/6019208/158074757-72e16536-0025-4e04-b4dd-5dfbb27600c9.png)
 
@@ -41,7 +39,8 @@ This is the compnent that gets installed on the raspberry Pi. It will run a Node
   * A momentary switch to reset the fuel readings (because my fuel sender is non functional) (optional obviously)
   * [Adafruit i2c LED/Switch board](https://www.adafruit.com/product/5296) (to handle buttons/leds)
   * [i2c hat from sparkfun](https://www.sparkfun.com/products/14459)
-
+* Check this out for safe shutdown stuff - it uses a timed relay to stop parasitic draw
+  * https://www.youtube.com/watch?v=rPQ5pLYV1TA&t=328s
 ## Update PI EEPROM for new Bootloader
 if you dont care about booting from USB, just skip to Setting up Image.
 1. Download RPI's official [Imager](https://www.raspberrypi.org/software/)
@@ -240,7 +239,9 @@ node -v
 * [NodeCan](https://github.com/sebi2k1/node-can)
 * [uWebSockets](https://unetworking.github.io/uWebSockets.js/generated/interfaces/templatedapp.html#ws)
 * https://desertbot.io/blog/headless-raspberry-pi-4-ssh-wifi-setup
-* 
+* https://www.makeuseof.com/raspberry-pi-set-static-ip/
+* https://roboticsbackend.com/raspberry-pi-3-pins/
+* https://desertbot.io/blog/headless-raspberry-pi-4-ssh-wifi-setup
 
 # Speed up Boot times
 ## consider disable services??
@@ -333,4 +334,7 @@ To run device related commands via SSH:
 chromium-browser --window-position=0,0 --user-data-dir="/home/pi/Documents/Profiles/0" --noerrdialogs --disable-infobars --disable-full-history-sync  --kiosk http:\\localhost:3000 --enable-features=CanvasOop>
 51 chromium-browser --window-position=0,400 --user-data-dir="/home/pi/Documents/Profiles/1" --noerrdialogs --disable-infobars --disable-full-history-sync  --kiosk http:\\localhost:3000 --enable-features=CanvasO>
 52 
+#dtoverlay=gpio-shutdown
+#dtoverlay=gpio-shutdown,debounce=5000
+#dtoverlay=gpio-shutdown,gpio_pin=3,active_low=1,gpio_pull=up,debounce=5000
 ```
