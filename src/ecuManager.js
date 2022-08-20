@@ -28,7 +28,8 @@ export default (carSettings, canChannel) => {
     },
     {
       // Manual Power Toggle
-      onPressed: () => {
+      onReleased: () => {
+        piShutdown.now();
       },
       holdNeeded: true,
     },

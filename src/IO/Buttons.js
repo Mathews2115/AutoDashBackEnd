@@ -65,7 +65,6 @@ export default class Buttons {
       if (!button.holdNeeded) {
         button.onReleased();
       } else if (performance.now() - button.pressedSince > 2000) {
-        this.devices.flashSwitch();
         button.onReleased();
       }
       // else no action needed;

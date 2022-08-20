@@ -2,7 +2,7 @@ import { exec } from 'child_process';
 import isPi from './isPi.js';
 
 let powerOffTimeout = null;
-const SECOND_BEFORE_SHUTDOWN = 5
+const SECOND_BEFORE_SHUTDOWN = 10
 
 const shutdownPi = () => {
   console.log(' shutting down...');
@@ -26,5 +26,6 @@ const cancelPowerOff = () => {
 export default {
   start: startPowerOff,
   stop: cancelPowerOff,
+  now: shutdownPi,
 }
 
