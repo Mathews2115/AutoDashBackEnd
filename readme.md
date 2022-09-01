@@ -1,5 +1,5 @@
 # Raspberry Pi (4) Digital Dash Server
-![image](https://user-images.githubusercontent.com/6019208/158074757-72e16536-0025-4e04-b4dd-5dfbb27600c9.png)
+![PXL_20220831_171948354 TS](https://user-images.githubusercontent.com/6019208/188015514-fbd4a566-37e8-45a7-9b83-0294ed8e6451.jpg)
 
 ![PXL_20210808_010642720](https://user-images.githubusercontent.com/6019208/137767684-6434229c-4fc2-47d6-8813-407d13573b93.jpg)
 # This is the backend of the [Racepak/Holley Auto Digital Dash](https://github.com/Mathews2115/AutoDashFrontEnd). This pairs with the AutoDashFrontEnd
