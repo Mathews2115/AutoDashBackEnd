@@ -238,7 +238,7 @@ export default (carSettings, canChannel) => {
 
   // turns on CAN error, initiate shutdown
   const canUpdateToError = () => {
-    if (canChannel == 'can0') piShutdown.start(); // dont shutdown if we are stesting stuff
+    // if (canChannel == 'can0') piShutdown.start(); // dont shutdown if we are stesting stuff
     ecuDataStore.updateWarning(WARNING_KEYS.ECU_COMM, true);
     return canUpdateErrorState;
   };
