@@ -1,14 +1,14 @@
 gps:
-  enabled: true
+  enabled: false
   baudrate: 921600
   vendor_id: '1546'
 ecu: 
-  persist: true # persist data like fuel left, etc - turn this on if you know what you are doing (and things are  implemented)
-  can_type: 'racepak' #racepak or an400
-  odometer: 16865 #base
+  persist: false # persist data like fuel left, etc - turn this on if you know what you are doing (and things are  implemented)
+  can_type: 'OI' #racepak or OI (open inverter)
+  odometer: 1 #base
   tank_size: 17 # gal - only used if FUEL_FLOW is used and persist: is true
   oil_low_limit: 15 # psi
   voltage_low_limit: 11.8 #volts
   engine_temp_high: 250 # F degrees
-  buttons_enabled: true    # If enabled, you can use i2c buttons, feel free to use your own functionality - currently, I handle theme change, fuel level reset and power off through this IO
-  fuel_level_enabled: true  # enable this if you want to keep track of fuel level - you'll have to programatically reset the level when you fill up, also verify your tank_size
+  buttons_enabled: false    # If enabled, you can use i2c buttons, feel free to use your own functionality - currently, I handle theme change, fuel level reset and power off through this IO
+  fuel_level_enabled: false  # enable this if you want to keep track of fuel level - you'll have to programatically reset the level when you fill up, also verify your tank_size
