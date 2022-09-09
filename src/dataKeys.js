@@ -46,6 +46,7 @@ export const DATA_KEYS = {
   AVERAGE_MPG_POINTS: keygen(), // histogram of MPG points
   AVERAGE_MPG_POINT_INDEX: keygen(),
   LOW_LIGHT_DETECTED: keygen(),
+  HV_BATT_VOLTAGE: keygen(),
 
   PRESSURE_TYPE: keygen(), // 0 for PSI, 1 for kpa
   TEMP_TYPE: keygen(), // 0 for F, 1 for C

@@ -31,6 +31,7 @@ export default class DataStore {
     this.packetKeys[DATA_KEYS.AVERAGE_MPG_POINTS] = new PacketEntry(TYPES.SPECIAL_ARRAY);
     this.packetKeys[DATA_KEYS.AVERAGE_MPG_POINT_INDEX] = new PacketEntry(TYPES.ONE_BYTE);
     this.packetKeys[DATA_KEYS.LOW_LIGHT_DETECTED] = new PacketEntry(TYPES.ONE_BYTE);
+    this.packetKeys[DATA_KEYS.HV_BATT_VOLTAGE] = new PacketEntry(TYPES.FLOAT); // xxx.x volts
 
     this.buffer = Buffer.alloc(Math.max(1024, PacketEntry.OFFSET));
     this.warningsBuffer = this.buffer.slice(
