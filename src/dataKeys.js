@@ -1,56 +1,73 @@
+import { TYPES } from "./lib/PacketEntry.js";
+
 let key = 0;
 const keygen = (reset = false) => {
   if (reset) key = 0;
-  key += 1;
-  return key;
+  return key++;
 };
 
-// when you change this, make sure Datastore.js is updated too
-export const DATA_KEYS = {
+// ADDING ANOTHER DATA KEY:
+/**
+ * 1. add this anywhere in DATA_KEYS:
+ *     YOUR_NEW_KEY: { id: keygen(), byteType: TYPES.XXX },
+ * 2. Copy DATA_KEYS, and replace the DATA_KEYS on front end: in DataMap.js
+ * 3. Rebuild!
+ */
+
+
+/**
+ * @typedef {{ id: number, byteType: number; }} DataMapEntry
+ */
+
+
+export const DATA_MAP = {
   // Data From CAN BUS
-  PEDAL_POSITION: keygen(),
-  RPM: keygen(), // units 1 === 1 RPM
-  RTC: keygen(), // RTC clock = not used or defined yet
-  FUEL_PRESSURE: keygen(), // units 1 === 1 psi
-  SPEEDO: keygen(), // Holley Speed = units 1 === 1 mph
-  INJECTOR_PULSEWIDTH: keygen(),
-  FUEL_FLOW: keygen(),
-  CLOSED_LOOP_STATUS: keygen(),
-  DUTY_CYCLE: keygen(),
-  AFR_LEFT: keygen(), 
-  CLOSED_LOOP_COMP: keygen(),
-  AFR_RIGHT: keygen(),
-  TARGET_AFR: keygen(), 
-  AFR_AVERAGE: keygen(),
-  IGNITION_TIMING: keygen(), // units 1 == 1 degree
-  MAP: keygen(), // units 1 === 1 (PRESSURE_TYPE) (defaults to kpa if not set)
-  KNOCK_RETARD: keygen(),
-  MAT: keygen(), //manifold temp 
-  TPS: keygen(),
-  BAR_PRESSURE: keygen(),
-  CTS: keygen(),   // coolant (defaults to F if TEMP_TYPE isnt set )
-  OIL_PRESSURE: keygen(), // PSI
-  BATT_VOLTAGE: keygen(),
+  PEDAL_POSITION: { id: keygen(), byteType: TYPES.INT8 },  // xxx percent
+  RPM: { id: keygen(), byteType: TYPES.INT16 }, // units 1 === 1 RPM,  xx,xxx
+  // RTC: { id: keygen(), byteType: TYPES.FOUR_BYTES }, // RTC clock = not used or defined yet
+  FUEL_PRESSURE: { id: keygen(), byteType: TYPES.INT16 }, // units 1 === 1 psi
+  SPEEDO: { id: keygen(), byteType: TYPES.INT16 }, // Holley Speed = units 1 === 1 mph
+  INJECTOR_PULSEWIDTH: { id: keygen(), byteType: TYPES.INT16 },
+  FUEL_FLOW: { id: keygen(), byteType: TYPES.INT16 }, // x,xxx pounds/hour
+  CLOSED_LOOP_STATUS: { id: keygen(), byteType: TYPES.INT8 },
+  DUTY_CYCLE: { id: keygen(), byteType: TYPES.INT8 },
+  AFR_LEFT: { id: keygen(), byteType: TYPES.FLOAT }, // xx.x A/F
+  CLOSED_LOOP_COMP: { id: keygen(), byteType: TYPES.INT16 },
+  AFR_RIGHT: { id: keygen(), byteType: TYPES.FLOAT }, // xx.x A/F
+  TARGET_AFR:{ id: keygen(), byteType: TYPES.FLOAT }, // xx.x A/F
+  AFR_AVERAGE: { id: keygen(), byteType: TYPES.FLOAT }, // xx.x A/F
+  IGNITION_TIMING:{ id: keygen(), byteType: TYPES.FLOAT }, // units 1 == 1 degree
+  MAP: { id: keygen(), byteType: TYPES.INT16 }, // units 1 === 1 (PRESSURE_TYPE) (defaults to kpa if not set)
+  KNOCK_RETARD: { id: keygen(), byteType: TYPES.INT16 },
+  MAT: { id: keygen(), byteType: TYPES.INT16 }, //manifold temp 
+  TPS: { id: keygen(), byteType: TYPES.INT8 },
+  BAR_PRESSURE: { id: keygen(), byteType: TYPES.FLOAT },// xxx.x kPa
+  CTS: { id: keygen(), byteType: TYPES.INT16 },  // coolant (defaults to F if TEMP_TYPE isnt set )
+  OIL_PRESSURE: { id: keygen(), byteType: TYPES.INT16 }, // PSI  // xxx   psi
+  BATT_VOLTAGE: { id: keygen(), byteType: TYPES.FLOAT }, // xx.x volts
 
   // Data from GPS
-  ODOMETER: keygen(), // Current Miles Odometer
-  TRIP_ODOMETER: keygen(), //
-  GPS_SPEEED: keygen(), // Speed MPH
-  // HEADING: keygen(),
+  ODOMETER:{ id: keygen(), byteType: TYPES.INT16 },// Current Miles Odometer
+  TRIP_ODOMETER: { id: keygen(), byteType: TYPES.INT16 }, //
+  GPS_SPEEED: { id: keygen(), byteType: TYPES.INT16 }, // Speed MPH
 
-  // Our Data
-  WARNINGS: keygen(),
-  FUEL_LEVEL: keygen(), // 0-100%
-  CURRENT_MPG: keygen(),
-  AVERAGE_MPG: keygen(),
-  AVERAGE_MPG_POINTS: keygen(), // histogram of MPG points
-  AVERAGE_MPG_POINT_INDEX: keygen(),
-  LOW_LIGHT_DETECTED: keygen(),
+  WARNINGS: { id: keygen(), byteType: TYPES.BITFIELD }, // see warning keys
 
-  PRESSURE_TYPE: keygen(), // 0 for PSI, 1 for kpa
-  TEMP_TYPE: keygen(), // 0 for F, 1 for C
+  FUEL_LEVEL: { id: keygen(), byteType: TYPES.INT8 }, // 0-100%
+  CURRENT_MPG: { id: keygen(), byteType: TYPES.FLOAT },
+  AVERAGE_MPG: { id: keygen(), byteType: TYPES.FLOAT },
+  AVERAGE_MPG_POINTS: { id: keygen(), byteType: TYPES.SPECIAL_ARRAY }, // histogram of MPG points
+  AVERAGE_MPG_POINT_INDEX: { id: keygen(), byteType: TYPES.INT8 },
+  LOW_LIGHT_DETECTED: { id: keygen(), byteType: TYPES.INT8 },
+
+  // TODO: ;just make a single bitfield for these types of things
+  PRESSURE_TYPE: { id: keygen(), byteType: TYPES.INT8 }, // 0 for PSI, 1 for kpa
+  TEMP_TYPE: { id: keygen(), byteType: TYPES.INT8 }, // 0 for F, 1 for C
+
+  ///
+  SOME_NEW_VALUE: { id: keygen(), byteType: TYPES.UINT32 },
 };
-Object.freeze(DATA_KEYS);
+Object.freeze(DATA_MAP);
 
 // Keys for handling the WARNINGS Structure
 const firstWarningKey = keygen();
@@ -66,3 +83,11 @@ export const WARNING_KEYS = {
   COMM_ERROR: keygen(),
 };
 Object.freeze(WARNING_KEYS);
+
+
+// // simplify DATA_KEYS to ids from [{key: { id: number; byte?: number; }}] to [{key: id}]
+// // @type {Record<string, number>}
+// export const DATA_KEYS = Object.entries(DATA_KEY_MAP).reduce((acc, [k, v]) => {
+//   acc[k] = v.id;
+//   return acc;
+// }, {});

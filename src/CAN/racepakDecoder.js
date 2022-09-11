@@ -1,7 +1,4 @@
-import { DATA_KEYS } from "../dataKeys.js";
-
-const ecuSerial = 0x00007ad0 & 0x7ff; // used to decode message IDs
-
+import { DATA_MAP } from "../dataKeys.js";
 const RACEPACK_CAN_MAP = {
   /**
    * 1E0012D0
@@ -12,7 +9,7 @@ const RACEPACK_CAN_MAP = {
   0x1e001000: (data) => {
     return [
       // { id: DATA_KEYS.RTC, data: data. },
-      { id: DATA_KEYS.RPM, data: data.readInt32BE(4) / 256 },
+      { id: DATA_MAP.RPM, data: data.readInt32BE(4) / 256 },
     ];
   },
 
@@ -25,7 +22,7 @@ const RACEPACK_CAN_MAP = {
   0x1e005000: (data) => {
     return [
       // { id: DATA_KEYS.INJECTOR_PULSEWIDTH, data: data.readInt32BE(0) / 256 },
-      { id: DATA_KEYS.FUEL_FLOW, data: data.readInt32BE(4) / 256 },
+      { id: DATA_MAP.FUEL_FLOW, data: data.readInt32BE(4) / 256 },
     ];
   },
 
@@ -43,7 +40,7 @@ const RACEPACK_CAN_MAP = {
    */
   0x1e029000: (data) => {
     return [
-      { id: DATA_KEYS.PEDAL_POSITION, data: data.readInt32BE(0) / 256 },
+      { id: DATA_MAP.PEDAL_POSITION, data: data.readInt32BE(0) / 256 },
       // { id: DATA_KEYS.FUEL_PRESSURE, data: data.readInt32BE(4) / 256 },
     ];
   },
@@ -63,7 +60,7 @@ const RACEPACK_CAN_MAP = {
    */
   0x1E011000: (data) => {
     return [
-      { id: DATA_KEYS.TARGET_AFR, data: data.readInt32BE(0) / 256 },
+      { id: DATA_MAP.TARGET_AFR, data: data.readInt32BE(0) / 256 },
       // { id: DATA_KEYS.AFR_RIGHT, data: data.readInt32BE(4) / 256 },
     ];
   },
@@ -77,8 +74,8 @@ const RACEPACK_CAN_MAP = {
    */
   0x1E015000: (data) => {
     return [
-      { id: DATA_KEYS.IGNITION_TIMING, data: data.readInt32BE(0) / 256 },
-      { id: DATA_KEYS.AFR_AVERAGE, data: data.readInt32BE(4) / 256 },
+      { id: DATA_MAP.IGNITION_TIMING, data: data.readInt32BE(0) / 256 },
+      { id: DATA_MAP.AFR_AVERAGE, data: data.readInt32BE(4) / 256 },
     ];
   },
 
@@ -91,7 +88,7 @@ const RACEPACK_CAN_MAP = {
    */
    0x1E019000: (data) => {
     return [
-      { id: DATA_KEYS.MAP, data: data.readInt32BE(0) / 256 },
+      { id: DATA_MAP.MAP, data: data.readInt32BE(0) / 256 },
       // { id: DATA_KEYS.KNOCK_RETARD, data: data.readInt32BE(4) / 256 },
     ];
   },
@@ -105,7 +102,7 @@ const RACEPACK_CAN_MAP = {
    */
    0x1E01D000: (data) => {
     return [
-      { id: DATA_KEYS.MAT, data: data.readInt32BE(0) / 256 },
+      { id: DATA_MAP.MAT, data: data.readInt32BE(0) / 256 },
       // { id: DATA_KEYS.TPS, data: data.readInt32BE(4) / 256 },
     ];
   },
@@ -119,8 +116,8 @@ const RACEPACK_CAN_MAP = {
    */
    0x1E021000: (data) => {
     return [
-      { id: DATA_KEYS.BAR_PRESSURE, data: data.readInt32BE(0) / 256 },
-      { id: DATA_KEYS.CTS, data: data.readInt32BE(4) / 256 },
+      { id: DATA_MAP.BAR_PRESSURE, data: data.readInt32BE(0) / 256 },
+      { id: DATA_MAP.CTS, data: data.readInt32BE(4) / 256 },
     ];
   },
 
@@ -134,8 +131,8 @@ const RACEPACK_CAN_MAP = {
    0x1E025000: (data) => {
      
     return [
-      { id: DATA_KEYS.OIL_PRESSURE, data: data.readInt32BE(0) / 256 },
-      { id: DATA_KEYS.BATT_VOLTAGE, data: data.readInt32BE(4) / 256 },
+      { id: DATA_MAP.OIL_PRESSURE, data: data.readInt32BE(0) / 256 },
+      { id: DATA_MAP.BATT_VOLTAGE, data: data.readInt32BE(4) / 256 },
     ];
   },
 
@@ -146,10 +143,14 @@ const RACEPACK_CAN_MAP = {
    */
 };
 
+// BIG NOTE:  (note for OpenINverter that uses LE)
+// Double check your ECU stores data Big Endian or Little Endian
+// and use the appropriate method to read the data
+// ex: data.readInt32BE(0) or data.readInt32LE(0)
 const racePackDecoder = {
   /**
    * @param {{ ts: number; id: number; data: Uint8Array; ext: boolean; }} canMsg
-   * @returns {[{id:Number, data:Number}] | []}
+   * @returns {[{id:import("../dataKeys.js").DataMapEntry, data:Number}] | []}
    */
   do: (canMsg) => {
     const decodedId = canMsg.id & 0xfffff800;
@@ -162,3 +163,5 @@ const racePackDecoder = {
 };
 
 export default racePackDecoder;
+
+// TODO: figure out way of not having to access key each time, (bake it in on init, reduce cycles)
