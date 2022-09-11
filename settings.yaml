@@ -7,8 +7,8 @@ ecu:
   buttons_enabled: false    # If enabled, you can use i2c buttons, feel free to use your own functionality - currently, I handle theme change, fuel level reset and power off through this IO
   fuel_level_enabled: false  # enable this if you want to keep track of fuel level - you'll have to programatically reset the level when you fill up, also verify your tank_size
   shutdown_when_can_stops: false # enable if you want to initiate pi shutdown after CAN stops sending 
-  can_type: 'racepak' #racepak or an400
-  odometer: 16865 #base
+  can_type: 'OI' #racepak or OI (open inverter)
+  odometer: 1 #base
   tank_size: 17 # gal - only used if FUEL_FLOW is used and persist: is true
   oil_low_limit: 15 # psi
   voltage_low_limit: 11.8 #volts
