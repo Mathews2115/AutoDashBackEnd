@@ -1,5 +1,6 @@
 import { performance } from "perf_hooks";
 import racePackDecoder from "./CAN/racepakDecoder.js";
+import openInverterDecoder from "./CAN/openInverterDecoder.js";
 import an400Decoder from "./CAN/an400Decorder.js";
 import { DATA_MAP, WARNING_KEYS } from "./dataKeys.js";
 import DataStore from "./DataStore.js";
@@ -51,8 +52,8 @@ export default (carSettings, canChannel) => {
   const mpgSampler = new RingBuffer(Buffer.alloc(1024));
   let gallonsLeft = 0;
 
-  // assign decoder - currently this was designed for racepak but we have LOOSE support for an400 stuff
-  const decoder = carSettings.can_type === "an400" ? an400Decoder : racePackDecoder;
+  // assign decoder - currently this was designed for racepak but we have LOOSE support for openInverter stuff
+  const decoder = carSettings.can_type === "OI" ? openInverterDecoder : racePackDecoder;
 
   /**
    * Initialize Fuel Readings - get the last known gallons left

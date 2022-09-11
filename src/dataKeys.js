@@ -8,9 +8,9 @@ const keygen = (reset = false) => {
 
 // ADDING ANOTHER DATA KEY:
 /**
- * 1. add this anywhere in DATA_KEYS:
+ * 1. add this anywhere in DATA_MAP:
  *     YOUR_NEW_KEY: { id: keygen(), byteType: TYPES.XXX },
- * 2. Copy DATA_KEYS, and replace the DATA_KEYS on front end: in DataMap.js
+ * 2. Copy DATA_MAP, and replace the DATA_MAP on front end: in DataMap.js
  * 3. Rebuild!
  */
 
@@ -65,6 +65,7 @@ export const DATA_MAP = {
   TEMP_TYPE: { id: keygen(), byteType: TYPES.INT8 }, // 0 for F, 1 for C
 
   ///
+  HV_BATT_VOLTAGE: { id: keygen(), byteType: TYPES.FLOAT }, // xx.x volts
   SOME_NEW_VALUE: { id: keygen(), byteType: TYPES.UINT32 },
 };
 Object.freeze(DATA_MAP);
