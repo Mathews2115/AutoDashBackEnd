@@ -1,7 +1,7 @@
 import { SerialPort } from 'serialport';
 import UBXProtocolParser from './ubx/UbxProtocolParser.js';
 import UBXPacketParser from './ubx/UbxPacketParser.js';
-import { DATA_KEYS, WARNING_KEYS } from '../dataKeys.js';
+import { DATA_MAP, WARNING_KEYS } from '../dataKeys.js';
 
 class GPSManager {
   constructor(settings) {
@@ -72,7 +72,7 @@ class GPSManager {
         return [
           // so the GPS hardware wont retain these and will cold restart due to losing power - so we will persist the values and use the trip odo instead
           // { id: DATA_KEYS.ODOMETER, data: Math.floor(data.data.totalDistance * 0.000621371) }, 
-          { id: DATA_KEYS.ODOMETER, data: Math.floor(data.data.distance * 0.000621371) },
+          { id: DATA_MAP.ODOMETER, data: Math.floor(data.data.distance * 0.000621371) },
         ];
 
       case 'HNR-PVT':
@@ -82,7 +82,7 @@ class GPSManager {
             data:  data.data.gpsFixRaw.value <= 1 || data.data.gpsFixRaw.value >= 5,
           },
           {
-            id: DATA_KEYS.GPS_SPEEED,
+            id: DATA_MAP.GPS_SPEEED,
             data: Math.min(255, Math.floor(data.data.gSpeed * 0.00223693629)), // mm/s to mph;
           }, 
         ];

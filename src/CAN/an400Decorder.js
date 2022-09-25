@@ -11,7 +11,7 @@
           endif
  */
 
-import { DATA_KEYS } from "../dataKeys.js";
+import { DATA_MAP } from "../dataKeys.js";
 
 
 const AN_400_DECODER= {
@@ -25,10 +25,10 @@ const AN_400_DECODER= {
    */
   0x0cfff048: (data) => {
     return [
-      { id: DATA_KEYS.RPM, data: data.readUint16LE(0) },
-      { id: DATA_KEYS.TPS, data: data.readInt16LE(2) },
+      { id: DATA_MAP.RPM, data: data.readUint16LE(0) },
+      { id: DATA_MAP.TPS, data: data.readInt16LE(2) },
       // { },
-      { id: DATA_KEYS.IGNITION_TIMING, data: data.readInt16LE(6) },
+      { id: DATA_MAP.IGNITION_TIMING, data: data.readInt16LE(6) },
     ];
   },
 
@@ -42,10 +42,10 @@ const AN_400_DECODER= {
    */
   0x0CFFF148: (data) => {
     return [
-      { id: DATA_KEYS.BAR_PRESSURE, data: data.readInt16LE(0) },
-      { id: DATA_KEYS.MAP, data: data.readInt16LE(2) },
+      { id: DATA_MAP.BAR_PRESSURE, data: data.readInt16LE(0) },
+      { id: DATA_MAP.MAP, data: data.readInt16LE(2) },
       // {}, // feel free to add a datakey for this
-      { id: DATA_KEYS.PRESSURE_TYPE, data: data.readUint8(6) },
+      { id: DATA_MAP.PRESSURE_TYPE, data: data.readUint8(6) },
     ];
   },
 
@@ -102,10 +102,10 @@ const AN_400_DECODER= {
    */
   0x0CFFF548: (data) => {
     return [
-      { id: DATA_KEYS.BATT_VOLTAGE, data: data.readInt16LE(0) },
-      { id: DATA_KEYS.MAT, data: data.readInt16LE(2) },
-      { id: DATA_KEYS.CTS, data: data.readInt16LE(4) },
-      { id: DATA_KEYS.TEMP_TYPE, data: data.readUInt8(6) },
+      { id: DATA_MAP.BATT_VOLTAGE, data: data.readInt16LE(0) },
+      { id: DATA_MAP.MAT, data: data.readInt16LE(2) },
+      { id: DATA_MAP.CTS, data: data.readInt16LE(4) },
+      { id: DATA_MAP.TEMP_TYPE, data: data.readUInt8(6) },
     ];
   },
 

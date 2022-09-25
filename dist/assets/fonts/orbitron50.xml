@@ -51,7 +51,7 @@
         <char id="73" x="133" y="76" width="5" height="36" xoffset="2" yoffset="15" xadvance="11" page="0" chnl="15"/>
         <char id="74" x="176" y="72" width="37" height="36" xoffset="0" yoffset="15" xadvance="39" page="0" chnl="15"/>
         <char id="75" x="147" y="0" width="36" height="36" xoffset="2" yoffset="15" xadvance="40" page="1" chnl="15"/>
-        <char id="76" x="182" y="144" width="37" height="36" xoffset="2" yoffset="15" xadvance="39" page="0" chnl="15"/>
+        <char id="76" x="182" y="145" width="37" height="35" xoffset="2" yoffset="15" xadvance="39" page="0" chnl="15"/>
         <char id="77" x="184" y="0" width="42" height="36" xoffset="2" yoffset="15" xadvance="46" page="0" chnl="15"/>
         <char id="78" x="219" y="155" width="37" height="36" xoffset="2" yoffset="15" xadvance="42" page="0" chnl="15"/>
         <char id="79" x="178" y="180" width="37" height="36" xoffset="2" yoffset="15" xadvance="41" page="0" chnl="15"/>
