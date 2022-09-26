@@ -195,7 +195,7 @@ export default (carSettings, canChannel) => {
       // canparsing failure, shutdown
       return gpsUpdateStateToBroked(msg);
     }
-    msg.forEach((newData) => updateValue(newData));
+    msg.forEach((gpsData) => updateValue({dataKey: gpsData.id, data: gpsData.data}));
     return gpsUpdate;
   };
 
