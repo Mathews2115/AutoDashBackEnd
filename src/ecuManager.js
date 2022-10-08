@@ -43,6 +43,7 @@ export default (carSettings, canChannel) => {
       holdNeeded: false,
     },
   ]);
+  let getSpeed = () => 0;
   let msSample = 0;
   let lastMpgSampleTime = 0;
   let distance = 0;
@@ -78,20 +79,28 @@ export default (carSettings, canChannel) => {
     ecuDataStore.write(DATA_MAP.ODOMETER, baseOdometerReading);
   };
 
+  const initializeSpeedo = () => {
+    if (carSettings.speedo === "GPS") {
+      getSpeed = () => ecuDataStore.read(DATA_MAP.GPS_SPEEED);
+    } else if (carSettings.speedo === "CAN") {
+      getSpeed = () => ecuDataStore.read(DATA_MAP.SPEEDO);
+    }
+    getSpeed = () => 26
+  }
+
   const init = ({ gallonsLeft, odometer }) => {
     if (carSettings.buttons_enabled) {
       buttons.start(); // start listening for button presses
     }
-
     initializeFuel(gallonsLeft || carSettings.tank_size);
-    
+    initializeSpeedo();
     ecuDataStore.updateWarning(WARNING_KEYS.ECU_COMM, true);
     ecuDataStore.write(DATA_MAP.TEMP_TYPE, 0); // default to F
     ecuDataStore.write(DATA_MAP.PRESSURE_TYPE, 1); // default to kpa (used for MAP) / /make sure you front end gets what it expects!
-    
     initializeOdometer(odometer);
   };
 
+  
   const updateFuelLeft = () => {
     if (carSettings.fuel_level_enabled) {
       ecuDataStore.write(
@@ -122,7 +131,7 @@ export default (carSettings, canChannel) => {
         // calculate distance since last sample
         // we do this because the odometer is in mile denom; where as can get tiny slices of a mile traveled based on the speed and time
         distance =
-          (ecuDataStore.read(DATA_MAP.GPS_SPEEED) / 3600000) * msDelta;
+          (getSpeed() / 3600000) * msDelta;
 
         // calc average MPGs
         const currentMpg = Math.floor(distance / gallonsConsumed);
@@ -177,6 +186,8 @@ export default (carSettings, canChannel) => {
         }
         data += baseOdometerReading;
         break;
+      case WARNING_KEYS.GPS_NOT_ACQUIRED:
+        if (data) ecuDataStore.write(DATA_MAP.GPS_SPEEED, -1);
       default:
         break;
     }
@@ -218,12 +229,13 @@ export default (carSettings, canChannel) => {
    * @returns {Function}
    */
   const gpsUpdateStateToBroked = (msg) => {
+    ecuDataStore.write(DATA_MAP.GPS_SPEEED, -1);
     ecuDataStore.updateWarning(WARNING_KEYS.GPS_ERROR, true);
     return gpsUpdateStateToWorking;
   };
 
   /** @type {Function} */
-  let gpsUpdater = gpsUpdate;
+  let gpsUpdater = gpsUpdateStateToBroked;
 
   const canUpdate = (msg) => {
     if (msg === false) {
