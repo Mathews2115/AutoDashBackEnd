@@ -1,7 +1,7 @@
 {
   "name": "auto-dash-back-end",
   "description": "RPI4 CAN interface with web socket server and web server",
-  "version": "1.1.1",
+  "version": "2.0.0",
   "private": true,
   "scripts": {
     "init_and_start_vcan_server": "./RPI_system/start_vcan.sh && npm run test_server",
