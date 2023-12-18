@@ -11,7 +11,7 @@ let stopping = false;
 
 // websockets config
 const WS_PORT = 3333;
-const WS_URL = ''
+const WS_URL = 'pi4';
 
 export default function (canChannel, settings) {
   const canComms = new CanbusManager(canChannel);

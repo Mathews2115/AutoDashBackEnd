@@ -7,6 +7,7 @@
     "init_and_start_vcan_server": "./RPI_system/start_vcan.sh && npm run test_server",
     "start_vcan_server": "NODE_ENV=production CHANNEL=vcan0 TYPE=live node index.js",
     "can_server": "NODE_ENV=production TYPE=live CHANNEL=can0 node index.js",
+    "web_server": "NODE_ENV=development TYPE=development CHANNEL=vcan0 node index.js",
     "test_server": "NODE_ENV=development TYPE=development CHANNEL=vcan0 node index.js"
   },
   "author": "Michael J Mathews II",

@@ -1,0 +1,89 @@
+    1  ip a
+    2  sudo apt -y install can-utils libsocketcan2 libsocketcan-dev
+    3  sudo apt update
+    4  sudo apt install --no-install-recommends xserver-xorg x11-xserver-utils xinit openbox --assume-yes
+    5  sudo apt install --no-install-recommends chromium-browser --assume-yes
+    6  udo nano /etc/xdg/openbox/autostart
+    7  sudo nano /etc/xdg/openbox/autostart
+    8  sudo nano /home/pi/.bash_profile
+    9  sudo nano /home/one/.bash_profile
+   10  reboot
+   11  sudo reboot
+   12  sudo nano /etc/xdg/openbox/autostart
+   13  sudo reboot
+   14  sudo raspi-config 
+   15  exit
+   16  ls
+   17  wget https://nodejs.org/dist/v16.14.0/node-v16.14.0-linux-arm64.tar.xz
+   18  tar -xf node-v16.14.0-linux-arm64.tar.xz
+   19  rm node-v16.14.0-linux-arm64.tar.xz
+   20  cd node-v16.14.0-linux-arm64
+   21  sudo cp -R * /usr/local/
+   22  sudo reboot
+   23  node -v
+   24  curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/yarnkey.gpg >/dev/null
+   25     echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+   26     sudo apt update && sudo apt install yarn
+   27  cd AutoDashBackEnd/
+   28  ls
+   29  sudo apt install vi git 
+   30  sudo apt install vim git 
+   31  git clone https://github.com/Mathews2115/AutoDashBackEnd.git
+   32  cd AutoDashBackEnd/
+   33  ls
+   34  rm yarn.lock
+   35  cp yarn.lock.rpi_64 yarn.lock
+   36  yarn
+   37  RPI_system/prepare_dev.sh
+   38  RPI_system/prepare_dev.sh
+   39  RPI_system/prepare_preduction.sh
+   40  ./RPI_system/prepare_preduction.sh
+   41  bash /RPI_system/prepare_preduction.sh
+   42  bash RPI_system/prepare_preduction.sh
+   43  ls
+   44  bash RPI_system/prepare_production.sh 
+   45  bash RPI_system/prepare_production.sh 
+   46  RPI_system/prepare_dev.sh
+   47  sudo bash RPI_system/prepare_production.sh 
+   48  RPI_system/prepare_dev.sh
+   49  ls
+   50  cd RPI_system/
+   51  ls
+   52  prepare_production.sh
+   53  bash prepare_production.sh
+   54  cat prepare_production.sh
+   55  vi prepare_production.sh 
+   56  vi prepare_dev.sh 
+   57  cd ../
+   58  RPI_system/prepare_dev.sh
+   59  ls
+   60  canplayer vcan0=can0  -I ./can_dumps/candump-racepack-running.log -li
+   61  RPI_system/prepare_dev.sh
+   62  canplayer vcan0=can0  -I ./can_dumps/candump-racepack-running.log -li
+   63  RPI_system/start_vcan.sh
+   64  canplayer vcan0=can0  -I ./can_dumps/candump-racepack-running.log -li
+   65  screen
+   66  sudo apt install screen
+   67  screen
+   68  ps -ef |grep java
+   69  histopry 
+   70  history 
+   71  locate RPI_system
+   72  cd
+   73  cd AutoDashBackEnd/
+   74  ls
+   75  cd RPI_system/
+   76  ls
+   77  cd ..
+   78  ls
+   79  ls
+   80  ./RPI_system/prepare_dev.sh 
+   81  history 
+   82  cat RPI_system/prepare_dev.sh 
+   83  LS
+   84  LS
+   85  ls
+   86  cat RPI_system/prepare_production.sh 
+   87  history 
+   88  history |more
+   89  history > bash_history.log
