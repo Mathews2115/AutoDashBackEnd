@@ -4,17 +4,15 @@ After=network.target
 [Service]
 WorkingDirectory=/home/pi/AutoDashBackEnd/
 # Run's npm node script (Web Server and the CAN Server)
-ExecStart=yarn run can_server
+ExecStart=yarn run web_server
 Restart=on-failure
 RestartSec=1
 # KillMode=process <--- leave killmode blank if you want node to kill itself when you manually stop the service!!
-SyslogIdentifier=can_server
+SyslogIdentifier=web_server
 Environment=NODE_ENV=production
 Environment=CHANNEL=can0
-StandardOutput=syslog
-StandardError=syslog
-User=pi
-Group=pi
+User=one
+Group=one
 
 [Install]
 WantedBy=multi-user.target
