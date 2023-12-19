@@ -11,9 +11,9 @@ let stopping = false;
 
 // websockets config
 const WS_PORT = 3333;
-const WS_URL = 'pi4';
+const WS_URL = '';
 
-export default function (canChannel, settings) {
+export default function (canChannel, settings, NODE_ENV) {
   const canComms = new CanbusManager(canChannel);
   const dashComms = new DashSocketComms(WS_URL, WS_PORT);
   const gps = new GPSManager(settings.gps);
@@ -37,9 +37,9 @@ export default function (canChannel, settings) {
       } else {
         console.log('AutoDash: GPS disabled');
       }
-
+      if (NODE_ENV == 'production'){
       webserver.start();
-      
+      }
       // Frontend update 
       updateInterval = setInterval(() => {
         dashComms.dashUpdate(ecu.latestPacket())
@@ -85,7 +85,9 @@ export default function (canChannel, settings) {
     if (canComms && canComms.started) canComms.stop();
     if (gps && gps.started) gps.stop();
     ecu.stop();
+    if (NODE_ENV = 'production'){
     webserver.stop();
+    }
     console.log("AutoDash: -------- STOPPED   -------------");
   }
   

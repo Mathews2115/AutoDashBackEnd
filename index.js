@@ -9,7 +9,7 @@ const NODE_ENV = process.env.NODE_ENV
 
 try {
   const settings = yaml.load(fs.readFileSync('./settings.yaml', 'utf8'));
-  const dashServer = app(CAN_CHANNEL, settings);
+  const dashServer = app(CAN_CHANNEL, settings, NODE_ENV);
 
   // Development or Live (starts webserver if live)
   // const APP_TYPE = process.env.TYPE || dashServer.TYPES.DEVELOPMENT
