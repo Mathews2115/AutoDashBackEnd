@@ -2,11 +2,12 @@ import DashSocketComms from './dashSocketComms.js'
 import CanbusManager from './CAN/canbusManager.js'
 import GPSManager from './GPS/gpsManager.js'
 import ecuManager from './ecuManager.js'
-import { appSettingsManager } from './appSettingsManager.js'
 import DashContentWebServer from './webserver.js'
+import DataPersister from './DataPersister.js'
 
 const UPDATE_MS = 33; //frequency  sent up to the dash  30fps (about 60hz)
-const SAVE_FREQ = 5000; // save interval - when to persist data
+
+const APP_SETTINGS_LOCATION = './settings/appSettings.json';
 let stopping = false;
 
 // websockets config
@@ -17,42 +18,21 @@ export default function (canChannel, settings) {
   const canComms = new CanbusManager(canChannel);
   const dashComms = new DashSocketComms(WS_URL, WS_PORT);
   const gps = new GPSManager(settings.gps);
+  const persister = new DataPersister(APP_SETTINGS_LOCATION);
   const ecu = ecuManager(settings.ecu, canChannel);
-  const appSettings = appSettingsManager();
   const webserver = new DashContentWebServer('dist', 'index.html');
   let updateInterval = null;
-  let savingUpdateInterval = null;
 
   const startApp = () => {
     try {
-      // start conosole message
       console.log("AutoDash:-----------STARTING AUTODASH-------------")
-      const persistantData = appSettings.init();
-      ecu.init(persistantData);
+      ecu.init(persister.read());
       dashComms.start();
       canComms.start(ecu.updateFromCanBus);
-      
-      if (settings.gps.enabled) {
-        gps.start(ecu.updateFromGPS);
-      } else {
-        console.log('AutoDash: GPS disabled');
-      }
-
+      startGPS(settings, gps, ecu)
       webserver.start();
-      
-      // Frontend update 
-      updateInterval = setInterval(() => {
-        dashComms.dashUpdate(ecu.latestPacket())
-      }, UPDATE_MS);
-
-      //file saving
-      if (settings.ecu.persist) {
-        savingUpdateInterval = setInterval(() => {
-          appSettings.saveSettings(ecu.persistantData());
-        }, SAVE_FREQ);
-      } else {
-        console.log('AutoDash: No persisting data');
-      }
+      updateInterval = startDashUpdates(updateInterval, dashComms, ecu)
+      startFilePersisting(settings, persister, ecu)
     } catch (error) {
       onError(error);
     }
@@ -75,12 +55,8 @@ export default function (canChannel, settings) {
     }
     updateInterval = null;
 
-    if(savingUpdateInterval) {
-      clearInterval(savingUpdateInterval);
-    }
-    savingUpdateInterval = null;
-
     console.log(" -------- Stopping Dash Server   -------------");
+    persister.stop();
     if (dashComms && dashComms.started) dashComms.stop();
     if (canComms && canComms.started) canComms.stop();
     if (gps && gps.started) gps.stop();
@@ -88,7 +64,7 @@ export default function (canChannel, settings) {
     webserver.stop();
     console.log("AutoDash: -------- STOPPED   -------------");
   }
-  
+
   const app =  {
     TYPES: {
       DEVELOPMENT: 'development',
@@ -97,7 +73,7 @@ export default function (canChannel, settings) {
 
     /**
      * Starts the all comms (listening to the car CAN, talking to the dash client)
-     * @param {string} type 
+     * @param {string} type
      */
     start: startApp,
     stop: stopApp,
@@ -105,3 +81,35 @@ export default function (canChannel, settings) {
 
   return app;
 }
+
+function startDashUpdates(updateInterval, dashComms, ecu) {
+  updateInterval = setInterval(() => {
+    dashComms.dashUpdate(ecu.latestPacket())
+  }, UPDATE_MS)
+  return updateInterval
+}
+
+/**
+ * @param {{ gps: { enabled: any; }; }} settings
+ * @param {GPSManager} gps
+ */
+function startGPS(settings, gps, ecu) {
+  if (settings.gps.enabled) {
+    gps.start(ecu.updateFromGPS)
+  } else {
+    console.log('AutoDash: GPS disabled')
+  }
+}
+
+/**
+ * @param {{ ecu: { persist: any; }; }} settings
+ * @param {DataPersister} persister
+ */
+function startFilePersisting(settings, persister, ecu) {
+  if (settings.ecu.persist) {
+    persister.start(ecu.persistantData())
+  } else {
+    console.log('AutoDash: No persisting data')
+  }
+}
+

@@ -75,7 +75,7 @@ export default (carSettings, canChannel) => {
    * @param {Number} lastSavedReading - last saved odometer reading
    */
   const initializeOdometer = (lastSavedReading) => {
-    baseOdometerReading = lastSavedReading || carSettings.odometer;
+    baseOdometerReading = lastSavedReading;
     ecuDataStore.write(DATA_MAP.ODOMETER, baseOdometerReading);
   };
 
@@ -101,7 +101,7 @@ export default (carSettings, canChannel) => {
     initializeOdometer(odometer);
   };
 
-  
+
   const updateFuelLeft = () => {
     if (carSettings.fuel_level_enabled) {
       ecuDataStore.write(
@@ -163,7 +163,7 @@ export default (carSettings, canChannel) => {
     // do any special handling depending on the new updated value
     switch (dataKey) {
       case DATA_MAP.FUEL_FLOW:
-       
+
         updateMPG(data);
         updateFuelLeft();
         break;
@@ -274,10 +274,10 @@ export default (carSettings, canChannel) => {
     return canUpdateErrorState;
   }
 
-  /** 
+  /**
    * Called when there is an update from the Can Manager (msg or can failure)
    * start out in error state - so it doesnt trigger shutdown right off that bat (useful when testing)
-   * @type {Function} 
+   * @type {Function}
    * @returns {Function} - the updater function to call next (state machine)
   */
   let canUpdater = canUpdateErrorState;
