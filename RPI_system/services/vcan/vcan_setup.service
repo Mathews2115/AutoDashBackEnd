@@ -1,0 +1,10 @@
+[Unit]
+Description=Setup Virtual CAN Interface
+After=network.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/start_vcan.sh
+
+[Install]
+WantedBy=multi-user.target

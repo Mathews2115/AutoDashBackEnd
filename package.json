@@ -4,8 +4,8 @@
   "version": "2.0.0",
   "private": true,
   "scripts": {
-    "init_and_start_vcan_server": "./RPI_system/start_vcan.sh && npm run test_server",
-    "start_vcan_server": "NODE_ENV=production CHANNEL=vcan0 TYPE=live node index.js",
+    "init_and_start_vcan_server": "NODE_ENV=production CHANNEL=vcan0 && ./RPI_system/start_vcan.sh && NODE_ENV=production TYPE=live CHANNEL=vcan0 node index.js & canplayer vcan0=can0 -li -I ./can_dumps/candump-racepack-running.log",
+    "start_vcan_server": "NODE_ENV=production TYPE=live CHANNEL=vcan0 node index.js & canplayer vcan0=can0 -li -I ./can_dumps/candump-racepack-running.log",
     "can_server": "NODE_ENV=production TYPE=live CHANNEL=can0 node index.js",
     "test_server": "NODE_ENV=development TYPE=development CHANNEL=vcan0 node index.js"
   },
@@ -18,15 +18,6 @@
     "serialport": "^10.3.0",
     "socketcan": "^3.0.0",
     "uWebSockets.js": "uNetworking/uWebSockets.js#v20.3.0"
-  },
-  "devDependencies": {
-    "eslint": "^7.32.0",
-    "eslint-config-airbnb-base": "^14.2.1",
-    "eslint-import-resolver-webpack": "^0.13.0",
-    "eslint-plugin-import": "^2.24.0",
-    "eslint-webpack-plugin": "^2.5.3",
-    "prettier": "^2.2.1",
-    "prettier-eslint": "^12.0.0"
   },
   "type": "module",
   "main": "index.js",

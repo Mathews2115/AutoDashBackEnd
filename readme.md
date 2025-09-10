@@ -57,11 +57,11 @@ if you dont care about booting from USB, just skip to Setting up Image.
 1. Download RPI's official [Imager](https://www.raspberrypi.org/software/)
 2. Image USB (or SD if you dont want usb) card with a rasp lite image
 ### Setup Headless
-3. We are going to add SSH/Wifi so we can just ssh straight into it without needing a monitor (if desired) 
+3. We are going to add SSH/Wifi so we can just ssh straight into it without needing a monitor (if desired)
    1. Go into volume Boot of the card:
    2. [enable SSH](https://desertbot.io/blog/headless-raspberry-pi-4-ssh-wifi-setup):
       1. `sudo touch ssh`
-   3. WiFi network 
+   3. WiFi network
       1. `sudo touch wpa_supplicant.conf`
       2. add the contents to that file:
 ```
@@ -78,7 +78,7 @@ network={
 
 ### 7.9 Inch Monitor Support:
 4. Edit the `/boot/config.txt`
-5. add 
+5. add
 ```
 # waveshare 7.9 screen - https://www.waveshare.com/wiki/7.9inch_HDMI_LCD
 hdmi_group=2
@@ -90,10 +90,10 @@ The boot code delay is so the monitor has time to fully power on (if powered by 
 ### Boot up
 6. Pop the USB/SD in the pi and boot up
 7. login pi/raspberry
-8. (note: at some point set auto login to true, I still dont know how to do that without going to raspi-config) 
+8. (note: at some point set auto login to true, I still dont know how to do that without going to raspi-config)
 9. ssh from your computer:
    * `ssh-keygen -R raspberrypi.local`
-   * `ssh pi@raspberrypi.local` 
+   * `ssh pi@raspberrypi.local`
    * (default password is raspberry)
 10. Update everything: `sudo apt -y update && sudo apt -y upgrade ; sudo apt autoremove ; sudo apt dist-upgrade -y ; sudo reboot`
 11. `sudo raspi-config`
@@ -174,15 +174,15 @@ sed -i 's/"exited_cleanly":false/"exited_cleanly":true/; s/"exit_type":"[^"]\+"/
 #MESA_EXTENSION_OVERRIDE=-GL_MESA_framebuffer_flip_y chromium-browser --noerrdialogs --disable-infobars --disable-full-history-sync \
 
 chromium-browser --window-position=0,0 --user-data-dir="/home/pi/Documents/Profiles/0" --noerrdialogs --disable-infobars --disable-full-history-sync \
---kiosk http:\\localhost:3000 
+--kiosk http:\\localhost:3000
 ```
 
-#### AutoStart Chromium 
+#### AutoStart Chromium
 Add this when/if you want chromium to start upon boot
 1. `sudo nano /home/pi/.bash_profile`
-2. Add this: 
+2. Add this:
    1. `[[ -z $DISPLAY && $XDG_VTNR -eq 1 ]] && startx -- -nocursor`
-3. Reboot 
+3. Reboot
 
 # Setup Dash firmware
 ## Prereqs to build AutoDasahBackEnd
@@ -198,7 +198,7 @@ sudo reboot
 node -v
 ```
 
-1. install yarn 
+1. install yarn
   ```
   curl -sL https://dl.yarnpkg.com/debian/pubkey.gpg | gpg --dearmor | sudo tee /usr/share/keyrings/yarnkey.gpg >/dev/null
      echo "deb [signed-by=/usr/share/keyrings/yarnkey.gpg] https://dl.yarnpkg.com/debian stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
@@ -215,7 +215,7 @@ node -v
 
 ### Notes on Yarn.lock
 * yarn.lock - Linux desktop file
-* yarn.lock.rpi - 32 Bit version of raspi 
+* yarn.lock.rpi - 32 Bit version of raspi
 * yarn.lock.rpi_64 - x64 version of raspi <- current for raspberry pi 4
 
 ## Setup CAN on the PI
@@ -231,7 +231,7 @@ node -v
 
 ## Setup Can/Vcan Auto interface
 1. For Development mode: `RPI_system/start_vcan.sh`
-   
+
 ### Simulate CAN in dev on your Mac / Linux
 1. Start the virtual CAN interface: `.RPI_system/start_vcan.sh`
 2. Start playing CAN messages from a captured can log: `canplayer vcan0=can0  -I ./can_dumps/candump-racepack-running.log -li`
@@ -254,7 +254,7 @@ Consider disabling services to make boot time faster (if you dont need them) - h
 * `sudo systemctl disable apt-daily-upgrade.service`
 * `sudo systemctl disable rpi-eeprom-update.service`
 * `sudo systemctl disable keyboard-setup.service`
-* `sudo systemctl disable hciuart.service` 
+* `sudo systemctl disable hciuart.service`
 * `sudo systemctl disable bluealsa.service`
 * `sudo systemctl disable bluetooth.service`
 * disable wifi/touch?
@@ -264,15 +264,15 @@ Consider disabling services to make boot time faster (if you dont need them) - h
 
 ## Also remove overlays for disabled stuff
 1. `sudo nano /boot/config.txt`
-2. add 
+2. add
 ```
-#Disable Bluetooth 
+#Disable Bluetooth
 dtoverlay=disable-bt
 #dtparam=audio=on
 # Disable Wifi (disable this when the dash is ready to go in; eliminate time waiting for Wifi to raise)
 dtoverlay=disable-wifi
 disable_touchscreen=1
-```   
+```
 
 
 # CAN Protocol
@@ -286,25 +286,25 @@ disable_touchscreen=1
 
 ### General Decoding Info
 * Found [here](http://www.nhraracer.com/Files/Tech/NHRA_EFI_Specifications_Rev8.pdf) towards the bottom
-* The CAN data rate:  1 Mbit/sec 
-* Holley uses the ID as bit-wise structure:   
-  * Bits 31:29 – CAN flags (normally filtered out and read as 0)   
-  * Bits 28 – command bit (=1)   
-  * Bits 27:25 – Target ID (= 111, broadcast)   
-  * Bits 24:14 – Target Serial (used as a channel # index)   
-  * Bits 13:11 – source ID (= 010, hefi)  
+* The CAN data rate:  1 Mbit/sec
+* Holley uses the ID as bit-wise structure:
+  * Bits 31:29 – CAN flags (normally filtered out and read as 0)
+  * Bits 28 – command bit (=1)
+  * Bits 27:25 – Target ID (= 111, broadcast)
+  * Bits 24:14 – Target Serial (used as a channel # index)
+  * Bits 13:11 – source ID (= 010, hefi)
   * Bits 10:0 – source serial (the lower 11 bits of the serial # of the device as printed on the back of the ECU)
-* using extended identifier (CANID) format.   
-  * To decode data: mask out the lower 11 bits of the CANID 
+* using extended identifier (CANID) format.
+  * To decode data: mask out the lower 11 bits of the CANID
   * (i.e., logical AND with 0xFFFFF800)
 ### Monitor Packets
-Monitor data is continuously broadcast by the HEFI.  
-* The monitor packets contain an index in their CAN id and values in the data field.  
-* rate: approximately 10mS intervals. 
-* All monitor packets have a DLC of 8 bytes.  
-  * payload contains two values.  
-  * Each set of 4 bytes (with the exception of RTC) is in a signed “fixed 24.8” format (essentially fixed 24.8 = float *256) 
-  * The RTC is sent as an u32 showing milliseconds since power on, or if the RTC was set will it will be the current time of 
+Monitor data is continuously broadcast by the HEFI.
+* The monitor packets contain an index in their CAN id and values in the data field.
+* rate: approximately 10mS intervals.
+* All monitor packets have a DLC of 8 bytes.
+  * payload contains two values.
+  * Each set of 4 bytes (with the exception of RTC) is in a signed “fixed 24.8” format (essentially fixed 24.8 = float *256)
+  * The RTC is sent as an u32 showing milliseconds since power on, or if the RTC was set will it will be the current time of
 
 # GPS
 If you can, try to configure your GPS chip to only send the required messages.  In my instance, since I am using USB, I turned off all messages for other protocols (I2C, SPI, etc).   I also only enabled `NAV-ODO`, and  `HNR-PVT` messages.
@@ -324,11 +324,11 @@ Monitoring
 * Measure Temperature -     `watch -n1 vcgencmd measure_temp`
 
 # Personal Scratch Board/Notes:
-* making quick src updates: `scp -r ../AutoDashBackEnd/src pi@pi.local:/home/pi/AutoDashBackEnd/src` 
-* copy dist 
-  *  `scp -r ../AutoDashFrontEnd/dist pi@pi.local:/home/pi/AutoDashBackEnd/dist/ `
+* making quick src updates: `scp -r ../AutoDashBackEnd/src catnix@ltddash.local:/home/catnix/AutoDashBackEnd/src`
+* copy dist
+  *  `scp -r ../AutoDashFrontEnd/dist catnix@192.168.1.18:/home/catnix/AutoDashBackEnd/dist/ `
 ```
-~ cd development/AutoDashBackEnd                                       
+~ cd development/AutoDashBackEnd
 ➜  AutoDashBackEnd git:(main) ✗ canplayer vcan0=can0  -I ./can_dumps/candump-racepack-running.log -li
 
 ```
@@ -338,7 +338,7 @@ To run device related commands via SSH:
 ```
 chromium-browser --window-position=0,0 --user-data-dir="/home/pi/Documents/Profiles/0" --noerrdialogs --disable-infobars --disable-full-history-sync  --kiosk http:\\localhost:3000 --enable-features=CanvasOop>
 51 chromium-browser --window-position=0,400 --user-data-dir="/home/pi/Documents/Profiles/1" --noerrdialogs --disable-infobars --disable-full-history-sync  --kiosk http:\\localhost:3000 --enable-features=CanvasO>
-52 
+52
 #dtoverlay=gpio-shutdown
 #dtoverlay=gpio-shutdown,debounce=5000
 #dtoverlay=gpio-shutdown,gpio_pin=3,active_low=1,gpio_pull=up,debounce=5000

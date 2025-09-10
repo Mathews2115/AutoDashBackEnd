@@ -6,13 +6,15 @@ import fs from 'fs';
 // env vars we will use
 const CAN_CHANNEL =  process.env.CHANNEL
 const NODE_ENV = process.env.NODE_ENV
+const DEMO = process.env.DEMO
 
 try {
   const settings = yaml.load(fs.readFileSync('./settings.yaml', 'utf8'));
-  const dashServer = app(CAN_CHANNEL, settings);
-
-  // Development or Live (starts webserver if live)
-  // const APP_TYPE = process.env.TYPE || dashServer.TYPES.DEVELOPMENT
+  const dashServer = app({
+    canChannel: CAN_CHANNEL,
+    demo: !!DEMO,
+    env: NODE_ENV
+  }, settings);
 
   const stopAll = () => {
     dashServer.stop();

@@ -23,9 +23,9 @@ class DashContentWebServer {
     this.entryPointName = entryPointName;
     this.frontEndUrl = frontEndUrl;
     this.webserver = express();
-    this.webserver.use(express.static("/home/pi/AutoDashBackEnd/dist")); //  "public" off of current is root
+    this.webserver.use(express.static("/home/catnix/AutoDashBackEnd/dist")); //  "public" off of current is root
     this.webserver.get('*', function(req, res) {
-      res.sendFile('/home/pi/AutoDashBackEnd/dist/index.html'); // load the single view file (angular will handle the page changes on the front-end)
+      res.sendFile('/home/catnix/AutoDashBackEnd/dist/index.html'); // load the single view file (angular will handle the page changes on the front-end)
     });
   }
 

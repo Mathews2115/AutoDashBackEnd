@@ -19,7 +19,7 @@ class GPSManager {
 
   /**
    * Connect to physical device via serial port
-   * 
+   *
    * Example result from LIST
     locationId:undefined
     manufacturer:'u-blox AG - www.u-blox.com'
@@ -71,7 +71,7 @@ class GPSManager {
       case 'NAV-ODO':
         return [
           // so the GPS hardware wont retain these and will cold restart due to losing power - so we will persist the values and use the trip odo instead
-          // { id: DATA_KEYS.ODOMETER, data: Math.floor(data.data.totalDistance * 0.000621371) }, 
+          // { id: DATA_KEYS.ODOMETER, data: Math.floor(data.data.totalDistance * 0.000621371) },
           { id: DATA_MAP.ODOMETER, data: Math.floor(data.data.distance * 0.000621371) },
         ];
 
@@ -84,14 +84,14 @@ class GPSManager {
           {
             id: DATA_MAP.GPS_SPEEED,
             data: Math.min(255, Math.floor(data.data.gSpeed * 0.00223693629)), // mm/s to mph;
-          }, 
+          },
         ];
       default:
         return [];
     }
   }
 
-  resetOdometer() {     
+  resetOdometer() {
     //https://content.u-blox.com/sites/default/files/products/documents/u-blox8-M8_ReceiverDescrProtSpec_UBX-13003221.pdf
     const resetOdometerBuffer = new Uint8Array([0x01, 0x10, 0x0, 0x0])
     let chksumA = 0, chksumB = 0;
@@ -99,7 +99,7 @@ class GPSManager {
       chksumA += resetOdometerBuffer[i];
       chksumB += chksumA;
     }
-    const resetOdometerByteArray = new Uint8Array([0xB5, 0x62, 
+    const resetOdometerByteArray = new Uint8Array([0xB5, 0x62,
       ...resetOdometerBuffer, chksumA, chksumB,
     ])
     this.port.write(resetOdometerByteArray);
@@ -125,7 +125,7 @@ class GPSManager {
       this.port.pipe(this.ubxProtocolParser);
       this.open();
 
-      // UBX-NAV-RESETODO (0x01 0x10) - reset odo 
+      // UBX-NAV-RESETODO (0x01 0x10) - reset odo
       // https://content.u-blox.com/sites/default/files/u-blox-M9-SPG-4.04_InterfaceDescription_UBX-21022436.pdf
       this.resetOdometer();
     } catch (err) {

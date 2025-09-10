@@ -84,6 +84,11 @@ export default (carSettings, canChannel) => {
       getSpeed = () => ecuDataStore.read(DATA_MAP.GPS_SPEEED);
     } else if (carSettings.speedo === "CAN") {
       getSpeed = () => ecuDataStore.read(DATA_MAP.SPEEDO);
+    } else if (carSettings.speedo === "DEMO") {
+      getSpeed = () => {
+        return 55;
+      }
+
     } else {
       getSpeed = () => 0;
     }

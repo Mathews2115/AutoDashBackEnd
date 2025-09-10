@@ -1,19 +1,21 @@
 [Unit]
-After=network.target
+Description=Virtual CAN Server
+Requires=vcan-setup.service
+After=vcan-setup.service
 
 [Service]
-WorkingDirectory=/home/pi/AutoDashBackEnd/
+WorkingDirectory=/home/catnix/AutoDashBackEnd/
 # Run's npm node script (Web Server and the CAN Server)
 ExecStart=yarn run init_and_start_vcan_server
 # KillMode=process <--- leave killmode blank if you want node to kill itself when you manually stop the service!!
 SyslogIdentifier=init_and_start_vcan_server
-Environment=NODE_ENV=development 
-Environment=TYPE=development 
+Environment=NODE_ENV=development
+Environment=TYPE=development
 Environment=CHANNEL=vcan0
 StandardOutput=syslog
 StandardError=syslog
-User=pi
-Group=pi
+User=catnix
+Group=catnix
 
 [Install]
 WantedBy=multi-user.target

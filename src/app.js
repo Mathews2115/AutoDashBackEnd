@@ -14,12 +14,12 @@ let stopping = false;
 const WS_PORT = 3333;
 const WS_URL = ''
 
-export default function (canChannel, settings) {
-  const canComms = new CanbusManager(canChannel);
+export default function (envSettings, appSettings) {
+  const canComms = new CanbusManager(envSettings.canChannel);
   const dashComms = new DashSocketComms(WS_URL, WS_PORT);
-  const gps = new GPSManager(settings.gps);
+  const gps = new GPSManager(appSettings.gps);
   const persister = new DataPersister(APP_SETTINGS_LOCATION);
-  const ecu = ecuManager(settings.ecu, canChannel);
+  const ecu = ecuManager(appSettings.ecu, envSettings.canChannel);
   const webserver = new DashContentWebServer('dist', 'index.html');
   let updateInterval = null;
 
@@ -29,10 +29,10 @@ export default function (canChannel, settings) {
       ecu.init(persister.read());
       dashComms.start();
       canComms.start(ecu.updateFromCanBus);
-      startGPS(settings, gps, ecu)
+      startGPS(appSettings, gps, ecu)
       webserver.start();
       updateInterval = startDashUpdates(updateInterval, dashComms, ecu)
-      startFilePersisting(settings, persister, ecu)
+      startFilePersisting(appSettings, persister, ecu)
     } catch (error) {
       onError(error);
     }
@@ -66,15 +66,6 @@ export default function (canChannel, settings) {
   }
 
   const app =  {
-    TYPES: {
-      DEVELOPMENT: 'development',
-      LIVE: 'live'
-    },
-
-    /**
-     * Starts the all comms (listening to the car CAN, talking to the dash client)
-     * @param {string} type
-     */
     start: startApp,
     stop: stopApp,
   }
