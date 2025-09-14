@@ -1,11 +1,11 @@
 {
   "name": "auto-dash-back-end",
   "description": "RPI4 CAN interface with web socket server and web server",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "private": true,
   "scripts": {
     "init_and_start_vcan_server": "NODE_ENV=production CHANNEL=vcan0 && ./RPI_system/start_vcan.sh && NODE_ENV=production TYPE=live CHANNEL=vcan0 node index.js & canplayer vcan0=can0 -li -I ./can_dumps/candump-racepack-running.log",
-    "start_vcan_server": "NODE_ENV=production TYPE=live CHANNEL=vcan0 node index.js & canplayer vcan0=can0 -li -I ./can_dumps/candump-racepack-running.log",
+    "start_vcan_server": "NODE_ENV=production TYPE=live CHANNEL=vcan0 node index.js & canplayer vcan0=can0 -li -I ./can_dumps/candump-racepack-runningfake.log",
     "can_server": "NODE_ENV=production TYPE=live CHANNEL=can0 node index.js",
     "test_server": "NODE_ENV=development TYPE=development CHANNEL=vcan0 node index.js"
   },
