@@ -26,7 +26,7 @@ export const DATA_MAP = {
   RPM: { id: keygen(), byteType: TYPES.INT16 }, // units 1 === 1 RPM,  xx,xxx
   // RTC: { id: keygen(), byteType: TYPES.FOUR_BYTES }, // RTC clock = not used or defined yet
   FUEL_PRESSURE: { id: keygen(), byteType: TYPES.INT16 }, // units 1 === 1 psi
-  SPEEDO: { id: keygen(), byteType: TYPES.INT16 }, // Holley Speed = units 1 === 1 mph
+  SPEEDO: { id: keygen(), byteType: TYPES.INT16 }, //  Speed = units 1 === 1 mph
   INJECTOR_PULSEWIDTH: { id: keygen(), byteType: TYPES.INT16 },
   FUEL_FLOW: { id: keygen(), byteType: TYPES.INT16 }, // x,xxx pounds/hour
   CLOSED_LOOP_STATUS: { id: keygen(), byteType: TYPES.INT8 },
@@ -39,7 +39,7 @@ export const DATA_MAP = {
   IGNITION_TIMING:{ id: keygen(), byteType: TYPES.FLOAT }, // units 1 == 1 degree
   MAP: { id: keygen(), byteType: TYPES.INT16 }, // units 1 === 1 (PRESSURE_TYPE) (defaults to kpa if not set)
   KNOCK_RETARD: { id: keygen(), byteType: TYPES.INT16 },
-  MAT: { id: keygen(), byteType: TYPES.INT16 }, //manifold temp 
+  MAT: { id: keygen(), byteType: TYPES.INT16 }, //manifold temp
   TPS: { id: keygen(), byteType: TYPES.INT8 },
   BAR_PRESSURE: { id: keygen(), byteType: TYPES.FLOAT },// xxx.x kPa
   CTS: { id: keygen(), byteType: TYPES.INT16 },  // coolant (defaults to F if TEMP_TYPE isnt set )
@@ -66,7 +66,12 @@ export const DATA_MAP = {
 
   ///
   HV_BATT_VOLTAGE: { id: keygen(), byteType: TYPES.FLOAT }, // xx.x volts
-  SOME_NEW_VALUE: { id: keygen(), byteType: TYPES.UINT32 },
+
+
+  // Speedo mode
+  SPEEDO_MODE: { id: keygen(), byteType: TYPES.INT8 }, // 0 for CAN, 1 for GPS
+
+    // SOME_NEW_VALUE: { id: keygen(), byteType: TYPES.UINT32 },
 };
 Object.freeze(DATA_MAP);
 

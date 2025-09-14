@@ -7,6 +7,7 @@ import DataStore from "./DataStore.js";
 import RingBuffer from "./lib/ringBuffer.js";
 import ButtonManager from "./IO/Buttons.js";
 import piShutdown from "./IO/piShutdown.js";
+import { SPEEDO_SETTINGS } from "./lib/speedSettings.js";
 
 export default (carSettings, canChannel) => {
   let buttons = new ButtonManager([
@@ -19,12 +20,9 @@ export default (carSettings, canChannel) => {
       holdNeeded: true,
     },
     {
-      // light / dark theme toggle
+      // toggle light / dark theme toggle
       onPressed: () =>
-        ecuDataStore.write(
-          DATA_MAP.LOW_LIGHT_DETECTED,
-          ecuDataStore.read(DATA_MAP.LOW_LIGHT_DETECTED) ? 0 : 1
-        ),
+        ecuDataStore.write(DATA_MAP.LOW_LIGHT_DETECTED, ecuDataStore.read(DATA_MAP.LOW_LIGHT_DETECTED) ? 0 : 1),
       holdNeeded: false,
     },
     {
@@ -82,15 +80,13 @@ export default (carSettings, canChannel) => {
   const initializeSpeedo = () => {
     if (carSettings.speedo === "GPS") {
       getSpeed = () => ecuDataStore.read(DATA_MAP.GPS_SPEEED);
+      ecuDataStore.write(DATA_MAP.SPEEDO_MODE, SPEEDO_SETTINGS.GPS.id);
     } else if (carSettings.speedo === "CAN") {
       getSpeed = () => ecuDataStore.read(DATA_MAP.SPEEDO);
-    } else if (carSettings.speedo === "DEMO") {
-      getSpeed = () => {
-        return 55;
-      }
-
+      ecuDataStore.write(DATA_MAP.SPEEDO_MODE, SPEEDO_SETTINGS.CAN.id);
     } else {
       getSpeed = () => 0;
+      ecuDataStore.write(DATA_MAP.SPEEDO_MODE, SPEEDO_SETTINGS.CAN.id);
     }
   }
 

@@ -4,15 +4,9 @@ import GPSManager from './GPS/gpsManager.js'
 import ecuManager from './ecuManager.js'
 import DashContentWebServer from './webserver.js'
 import DataPersister from './DataPersister.js'
+import { APP_SETTINGS_LOCATION, UPDATE_MS, WS_PORT, WS_URL } from './lib/appValues.js'
 
-const UPDATE_MS = 33; //frequency  sent up to the dash  30fps (about 60hz)
-
-const APP_SETTINGS_LOCATION = './settings/appSettings.json';
 let stopping = false;
-
-// websockets config
-const WS_PORT = 3333;
-const WS_URL = ''
 
 export default function (envSettings, appSettings) {
   const canComms = new CanbusManager(envSettings.canChannel);
@@ -39,6 +33,7 @@ export default function (envSettings, appSettings) {
   }
 
   const onError = (error) => {
+    console.error("AutoDash: !!!App was unable to start!!");
     console.error(error);
     // if catchable error occurred, attempt to gracefully stop everything first
     if(dashComms && dashComms.started) {

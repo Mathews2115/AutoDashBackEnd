@@ -129,7 +129,6 @@ const RACEPACK_CAN_MAP = {
    * @returns
    */
    0x1E025000: (data) => {
-     
     return [
       { id: DATA_MAP.OIL_PRESSURE, data: data.readInt32BE(0) / 256 },
       { id: DATA_MAP.BATT_VOLTAGE, data: data.readInt32BE(4) / 256 },
@@ -141,6 +140,11 @@ const RACEPACK_CAN_MAP = {
    * Line Pressure  xxx percent
    * Speed          xxx MPH
    */
+  0x1E049000: (data) => {
+    return [
+      { id: DATA_MAP.SPEEDO, data: data.readInt32BE(4) / 256 },
+    ]
+  }
 };
 
 // BIG NOTE:  (note for OpenINverter that uses LE)
